@@ -1,5 +1,5 @@
 //! Defines the [`Condition`] codes that are defined in the Armv7-m instruction
-//! set..
+//! set.
 
 use crate::ArchError;
 
