@@ -79,3 +79,20 @@ impl Parse for B16 {
         Ok((16, ret))
     }
 }
+
+#[cfg(test)]
+mod arbitrary_test {
+    use crate::{arch::Register, buffer::PeekableBuffer, operation, prelude::Operation, Parse};
+
+    #[test]
+    fn test_1101_1010_0011_1001() {
+        let bin = [0b1101_1010u8, 0b0011_1001u8];
+        let mut stream = PeekableBuffer::from(bin.into_iter().rev());
+        let instr = Operation::parse(&mut stream).expect("Parser broken").1;
+        let target: Operation = operation::Bx::builder()
+            .set_rm(Register::R1)
+            .complete()
+            .into();
+        assert_eq!(instr, target)
+    }
+}

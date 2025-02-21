@@ -80,6 +80,16 @@ macro_rules! operation{
                 $name($name)
             ),*
         }
+        impl  Operation {
+            /// Returns the name of the given operation.
+            pub const fn name(&self) -> &'static str {
+                match self {
+                    $(
+                        Self::$name(_) => stringify!($name),
+                    )*
+                }
+            }
+        }
     };
 }
 
