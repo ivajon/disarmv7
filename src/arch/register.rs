@@ -74,6 +74,16 @@ macro_rules! reg {
                 u8::from(val) as u32
             }
         }
+        impl $name {
+            /// Returns the regiosters name as a string.
+            pub fn name(&self) -> String{
+                match self {
+                    $(
+                        Self::$reg => stringify!($reg).to_string()
+                    ),*
+                }
+            }
+        }
     };
 }
 reg!(
