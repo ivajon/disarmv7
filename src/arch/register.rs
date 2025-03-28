@@ -107,7 +107,7 @@ reg!(
     PC
 );
 reg!(
-    #[doc = "Enumerates the registers that are available to the system"]
+    #[doc = "Enumerates the f32 registers that are available to the system"]
     F64Register,
     D0,
     D1,
@@ -127,7 +127,7 @@ reg!(
     D16
 );
 reg!(
-    #[doc = "Enumerates the registers that are available to the system"]
+    #[doc = "Enumerates the f64 registers that are available to the system"]
     F32Register,
     S0,
     S1,
@@ -234,7 +234,8 @@ pub enum IEEE754RoundingMode {
 
 impl IEEE754RoundingMode {
     #[allow(clippy::wrong_self_convention)]
-    const fn to_u32(&self) -> u32 {
+    /// Converts the rounding mode to its u32 equivalent.
+    pub const fn to_u32(&self) -> u32 {
         match self {
             Self::RN => 0,
             Self::RP => 1,

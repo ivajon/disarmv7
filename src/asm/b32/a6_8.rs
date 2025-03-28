@@ -5,6 +5,7 @@ use crate::{
     arch::register::{F32Register, Register},
     asm::{LocalTryInto, Mask},
     instruction,
+    operation::RegisterOrAPSR,
     prelude::*,
     ParseError,
     ToOperation,
@@ -40,7 +41,7 @@ instruction!(
     /// Moves the floating point status register in to a normal core register.
     [1110|1110|1111|0001|tttt|1010|0001|0000]
     Vmrs: {
-        rt  as u8 : Register    : 12 -> 15 try_into
+        rt  as u8 : u8    : 12 -> 15
     },
 
     /// Moves a floatingpoint value from a scalar in to a halfword of a 64 bit float.
@@ -183,14 +184,12 @@ macro_rules! e {
 macro_rules! r32 {
     ($base:ident,$offset:ident) => {
         {
-        println!("32_Register : {:#08b}, {},{}",b!(($base; 4), ($offset<0>)),$base,$offset);
         F32Register::try_from(b!(($base; 4), ($offset<0>)))
         .expect("Failed to parse f32 register")
         }
     };
     ($h:ident,$base:ident,$offset:ident) => {
         {
-        println!("32_Register : {:#08b}, {},{}",b!(($h<0>),($base; 4), ($offset<0>)),$base,$offset);
         F32Register::try_from(b!(($h<0>), ($base; 4), ($offset<0>)))
         .expect("Failed to parse f32 register")
         }
@@ -201,7 +200,14 @@ impl ToOperation for A6_8 {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(match self {
             Self::Vmsr(Vmsr { rt }) => Operation::Vmsr(operation::Vmsr { rt }),
-            Self::Vmrs(Vmrs { rt }) => Operation::Vmrs(operation::Vmrs { rt }),
+            Self::Vmrs(Vmrs { rt }) => {
+                let val = match rt {
+                    0..=14u8 => RegisterOrAPSR::Register(rt.try_into()?),
+                    15u8 => RegisterOrAPSR::APSR,
+                    _ => return Err(ParseError::Invalid32Bit("Invalid register in Vmrs")),
+                };
+                Operation::Vmrs(operation::Vmrs { rt: val })
+            }
             Self::VmoveXFERCore(VmoveXFERCore { n, rt, vn, op }) => {
                 Operation::VmoveF32(operation::VmoveF32 {
                     to_core: op,
@@ -210,14 +216,14 @@ impl ToOperation for A6_8 {
                 })
             }
             Self::VmoveToCoreScalar(VmoveToCoreScalar { d, rt, vd, h }) => {
-                Operation::VmoveHalfWord(operation::VmoveHalfWord {
+                Operation::VmoveF32(operation::VmoveF32 {
                     to_core: true,
                     sn: r32!(d, vd, h),
                     rt,
                 })
             }
             Self::VmoveFromCoreScalar(VmoveFromCoreScalar { d, rt, vd, h }) => {
-                Operation::VmoveHalfWord(operation::VmoveHalfWord {
+                Operation::VmoveF32(operation::VmoveF32 {
                     to_core: false,
                     sn: r32!(d, vd, h),
                     rt,
@@ -243,7 +249,6 @@ mod test {
             bin.extend([size[2], size[3]].into_iter().rev());
             let mut stream = PeekableBuffer::from(bin.into_iter().into_iter());
             let instr = Operation::parse(&mut stream).expect("Parser broken").1;
-            println!("instr : {instr:?}");
 
             assert_eq!(instr,$($expected)+);
         }};
@@ -323,10 +328,15 @@ mod test {
 
     #[test]
     fn test_vmrs() {
-        let test = |rt: Register| A6_8::encode_vmrs(rt);
+        let test = |rt: Register| A6_8::encode_vmrs(rt as u8);
 
         for rt in [(Register::R12), (Register::R1)] {
-            check_eq!([test(rt.clone())] == Operation::Vmrs(crate::operation::Vmrs { rt }));
+            check_eq!(
+                [test(rt)]
+                    == Operation::Vmrs(crate::operation::Vmrs {
+                        rt: operation::RegisterOrAPSR::Register(rt)
+                    })
+            );
         }
     }
 

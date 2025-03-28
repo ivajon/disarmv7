@@ -591,7 +591,7 @@ operation!(
     sn:F32Register>, <rt:Register>
 
     Vmsr <rt:Register>
-    Vmrs <rt:Register>
+    Vmrs <rt:RegisterOrAPSR>
 
     VmoveDoubleF32 <to_core:bool>, <rt:Register>, <rt2:Register>, <sm:F32Register>, <sm1:F32Register>
 
@@ -632,4 +632,10 @@ pub enum IntType {
 pub enum F32OrF64 {
     F32(F32Register),
     F64(F64Register),
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum RegisterOrAPSR {
+    APSR,
+    Register(Register),
 }

@@ -222,7 +222,6 @@ macro_rules! e {
 macro_rules! r32 {
     ($base:ident,$offset:ident) => {
         {
-        println!("32_Register : {:#08b}, {},{}",b!(($base; 4), ($offset<0>)),$base,$offset);
         F32Register::try_from(b!(($base; 4), ($offset<0>)))
         .expect("Failed to parse f32 register")
         }
@@ -232,7 +231,6 @@ macro_rules! r32 {
 macro_rules! r64 {
     ($base:ident,$offset:ident) => {
         {
-        println!("64_Register : {:#08b}, {},{}",b!(($offset<0>),($base; 4)),$base,$offset);
         F64Register::try_from(b!(($offset<0>),($base; 4)))
         .expect("Failed to parse f64 register")
         }
@@ -248,7 +246,6 @@ macro_rules! regs32{
     ($vd:ident,$offset:ident,$imm8:ident) => {
         {
         let val = b!(($vd as u32; 4),($offset<0>))..($imm8 as u32);
-        println!("ITERATOR : {:?}",val);
         forcibly_collect((val).map(|idx| F32Register::try_from(idx)))?
         }
     };
@@ -256,7 +253,6 @@ macro_rules! regs32{
 
 impl ToOperation for A6_7 {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
-        println!("encoding specific operations for {:?}", self);
         Ok(match self {
             Self::VStm(VStm {
                 imm8,
@@ -445,7 +441,6 @@ mod test {
             bin.extend([size[2], size[3]].into_iter().rev());
             let mut stream = PeekableBuffer::from(bin.into_iter().into_iter());
             let instr = Operation::parse(&mut stream).expect("Parser broken").1;
-            println!("instr : {instr:?}");
 
             assert_eq!(instr,$($expected)+);
         }};

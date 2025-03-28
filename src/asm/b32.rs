@@ -42,12 +42,7 @@ impl Parse for B32 {
     where
         Self: Sized,
     {
-        let ret = match Self::parse_internal(iter) {
-            Ok(e) => e,
-            Err(e) => {
-                return Err(e);
-            }
-        };
+        let ret = Self::parse_internal(iter)?;
         let _: u32 = match iter.consume::<1>() {
             Some(val) => val[0],
             None => return Err(ParseError::IncompleteProgram),
@@ -73,10 +68,10 @@ impl B32 {
         if compare!(word == 111 | 0 | 110 | xxxxx | xxxx | xxxx | 101 | x | xx | x | x | xxxx) {
             return a6_7::A6_7::parse(iter)?.encoding_specific_operations();
         }
-        if compare!(word == 111x|1110|xxxx|xxxx|xxxx|101x|xxx1|xxxx) {
+        if compare!(word == 111x | 1110 | xxxx | xxxx | xxxx | 101x | xxx1 | xxxx) {
             return a6_8::A6_8::parse(iter)?.encoding_specific_operations();
         }
-        if compare!(word == 111x|1100|010x|xxxx|xxxx|101x|xxxx|xxxx) {
+        if compare!(word == 111x | 1100 | 010x | xxxx | xxxx | 101x | xxxx | xxxx) {
             return a6_9::A6_9::parse(iter)?.encoding_specific_operations();
         }
         let op1 = word.mask::<{ 16 + 11 }, { 16 + 12 }>();

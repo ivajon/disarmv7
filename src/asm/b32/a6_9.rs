@@ -108,8 +108,6 @@ mod test {
             bin.extend([size[2], size[3]].into_iter().rev());
             let mut stream = PeekableBuffer::from(bin.into_iter().into_iter());
             let instr = Operation::parse(&mut stream).expect("Parser broken").1;
-            println!("instr : {instr:?}");
-
             assert_eq!(instr,$($expected)+);
         }};
     }

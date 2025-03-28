@@ -249,7 +249,6 @@ macro_rules! instruction {
                                     let mut stream = $crate::prelude::PeekableBuffer::from(bin.into_iter().into_iter());
                                     let instr = Self::parse(&mut stream).expect("Parser broken");
 
-                                    println!("{instr:?} == {target:?}");
                                     assert!(instr == target);
                                 }
                                 ret

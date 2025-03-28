@@ -446,9 +446,6 @@ impl Parse for A6_5 {
                 intermediate2,
                 _opc4
             );
-            println!("Word : {word:#32b}");
-            println!("Size : {size:#32b}");
-            println!("opc1 : {opc1:#32b}");
             assert!(size == word);
         }
 
@@ -738,7 +735,7 @@ fn vfpexpandimm32(imm8: u8) -> u32 {
         }
         ret
     }
-    let (exp,exp_size) = b!(sized : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
+    let (exp, exp_size) = b!(sized : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
     let (frac, frac_size) = b!(sized : (imm8.mask::<0,3>();4),(f-4;0));
     return b!((sign;1),(exp;exp_size), (frac;frac_size));
 }
@@ -759,7 +756,7 @@ fn vfpexpandimm64(imm8: u8) -> u64 {
         }
         ret
     }
-    let (exp,exp_size) = b!(sized (u64) : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
+    let (exp, exp_size) = b!(sized (u64) : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
     let (frac, frac_size) = b!(sized (u64) : (imm8.mask::<0,3>();4),(f-4;0));
     return b!((u64) : (sign;1),(exp;exp_size), (frac;frac_size));
 }
@@ -767,7 +764,6 @@ fn vfpexpandimm64(imm8: u8) -> u64 {
 macro_rules! r32 {
     ($base:ident,$offset:ident) => {
         {
-        println!("32_Register : {:#08b}, {},{}",b!(($base; 4), ($offset<0>)),$base,$offset);
         F32Register::try_from(b!(($base; 4), ($offset<0>)))
         .expect("Failed to parse f32 register")
         }
@@ -777,7 +773,6 @@ macro_rules! r32 {
 macro_rules! r64 {
     ($base:ident,$offset:ident) => {
         {
-        println!("64_Register : {:#08b}, {},{}",b!(($offset<0>),($base; 4)),$base,$offset);
         F64Register::try_from(b!(($offset<0>),($base; 4)))
         .expect("Failed to parse f64 register")
         }
@@ -1570,7 +1565,6 @@ mod test {
             bin.extend([size[2], size[3]].into_iter().rev());
             let mut stream = PeekableBuffer::from(bin.into_iter().into_iter());
             let instr = Operation::parse(&mut stream).expect("Parser broken").1;
-            println!("instr : {instr:?}");
 
             assert_eq!(instr,$($expected)+);
         }};
@@ -2268,7 +2262,7 @@ mod test {
         let imm4h = 0b1101;
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|hhhh|dddd|101|z|0000|llll,
+            1110 | 1110 | 1D11 | hhhh | dddd | 101 | z | 0000 | llll,
             d,
             imm4h,
             sd,
@@ -2292,7 +2286,7 @@ mod test {
         let imm4h = 0b1101;
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|hhhh|dddd|101|z|0000|llll,
+            1110 | 1110 | 1D11 | hhhh | dddd | 101 | z | 0000 | llll,
             d,
             imm4h,
             sd,
@@ -2315,7 +2309,7 @@ mod test {
         let (rm, sm, m) = r32!(S1);
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|0000|dddd|101|z|01m0|llll,
+            1110 | 1110 | 1D11 | 0000 | dddd | 101 | z | 01m0 | llll,
             d,
             sd,
             sz,
@@ -2335,7 +2329,7 @@ mod test {
         let (rm, sm, m) = r64!(D2);
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|0000|dddd|101|z|01m0|llll,
+            1110 | 1110 | 1D11 | 0000 | dddd | 101 | z | 01m0 | llll,
             d,
             sd,
             sz,
@@ -2355,7 +2349,7 @@ mod test {
         let (rm, sm, m) = r32!(S1);
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|0000|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0000 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2375,7 +2369,7 @@ mod test {
         let (rm, sm, m) = r64!(D2);
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|0000|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0000 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2395,7 +2389,7 @@ mod test {
         let (rm, sm, m) = r32!(S1);
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|0001|dddd|101|z|01m0|llll,
+            1110 | 1110 | 1D11 | 0001 | dddd | 101 | z | 01m0 | llll,
             d,
             sd,
             sz,
@@ -2415,7 +2409,7 @@ mod test {
         let (rm, sm, m) = r64!(D2);
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|0001|dddd|101|z|01m0|llll,
+            1110 | 1110 | 1D11 | 0001 | dddd | 101 | z | 01m0 | llll,
             d,
             sd,
             sz,
@@ -2435,7 +2429,7 @@ mod test {
         let (rm, sm, m) = r32!(S1);
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|0001|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0001 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2455,7 +2449,7 @@ mod test {
         let (rm, sm, m) = r64!(D2);
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|0001|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0001 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2477,7 +2471,7 @@ mod test {
 
             let sz = 0u32;
             let size = combine!(
-                1110|1110|1D11|001o|dddd|101|z|t1m0|llll,
+                1110 | 1110 | 1D11 | 001o | dddd | 101 | z | t1m0 | llll,
                 d,
                 op,
                 sd,
@@ -2510,7 +2504,7 @@ mod test {
 
                 let sz = 1u32;
                 let size = combine!(
-                    1110|1110|1D11|001o|dddd|101|z|t1m0|llll,
+                    1110 | 1110 | 1D11 | 001o | dddd | 101 | z | t1m0 | llll,
                     d,
                     op,
                     sd,
@@ -2519,9 +2513,6 @@ mod test {
                     m,
                     sm
                 );
-                println!("rm(64) : {:#08b},{},{}", u8::from(rm), sm, m);
-                println!("rd(32) : {:#08b},{},{}", u8::from(rd), sd, d);
-
                 check_eq!(
                     size,
                     Operation::VcvtF64(operation::VcvtF64 {
@@ -2536,7 +2527,7 @@ mod test {
                 let (rd, sd, d) = r64!(D1);
                 let sz = 1u32;
                 let size = combine!(
-                    1110|1110|1D11|001o|dddd|101|z|t1m0|llll,
+                    1110 | 1110 | 1D11 | 001o | dddd | 101 | z | t1m0 | llll,
                     d,
                     op,
                     sd,
@@ -2545,8 +2536,6 @@ mod test {
                     m,
                     sm
                 );
-                println!("rm : {:#08b},{:#08b},{:#08b}", u8::from(rm), sm, m);
-                println!("rd : {:#08b},{:#08b},{:#08b}", u8::from(rd), sd, d);
 
                 check_eq!(
                     size,
@@ -2571,7 +2560,7 @@ mod test {
         let sz = 0u32;
         let e = 0;
         let size = combine!(
-            1110|1110|1D11|0100|dddd|101|z|e1m0|llll,
+            1110 | 1110 | 1D11 | 0100 | dddd | 101 | z | e1m0 | llll,
             d,
             sd,
             sz,
@@ -2596,7 +2585,7 @@ mod test {
         let sz = 0u32;
         let e = 0;
         let size = combine!(
-            1110|1110|1D11|0101|dddd|101|z|e100|0000,
+            1110 | 1110 | 1D11 | 0101 | dddd | 101 | z | e100 | 0000,
             d,
             sd,
             sz,
@@ -2619,7 +2608,7 @@ mod test {
         let sz = 1u32;
         let e = 0;
         let size = combine!(
-            1110|1110|1D11|0100|dddd|101|z|e1m0|llll,
+            1110 | 1110 | 1D11 | 0100 | dddd | 101 | z | e1m0 | llll,
             d,
             sd,
             sz,
@@ -2644,7 +2633,7 @@ mod test {
         let sz = 1u32;
         let e = 0;
         let size = combine!(
-            1110|1110|1D11|0101|dddd|101|z|e100|0000,
+            1110 | 1110 | 1D11 | 0101 | dddd | 101 | z | e100 | 0000,
             d,
             sd,
             sz,
@@ -2667,7 +2656,7 @@ mod test {
         let sz = 0u32;
         let test = |r: u32| {
             let size = combine!(
-                1110|1110|1D11|0110|dddd|101|z|e1m0|llll,
+                1110 | 1110 | 1D11 | 0110 | dddd | 101 | z | e1m0 | llll,
                 d,
                 sd,
                 sz,
@@ -2696,7 +2685,7 @@ mod test {
         let sz = 1u32;
         let test = |r: u32| {
             let size = combine!(
-                1110|1110|1D11|0110|dddd|101|z|e1m0|llll,
+                1110 | 1110 | 1D11 | 0110 | dddd | 101 | z | e1m0 | llll,
                 d,
                 sd,
                 sz,
@@ -2724,7 +2713,7 @@ mod test {
         let (rm, sm, m) = r64!(D13);
         let sz = 1u32;
         let size = combine!(
-            1110|1110|1D11|0111|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0111 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2744,7 +2733,7 @@ mod test {
         let (rm, sm, m) = r32!(S13);
         let sz = 0u32;
         let size = combine!(
-            1110|1110|1D11|0111|dddd|101|z|11m0|llll,
+            1110 | 1110 | 1D11 | 0111 | dddd | 101 | z | 11m0 | llll,
             d,
             sd,
             sz,
@@ -2769,8 +2758,7 @@ mod test {
                     operand: ConversionArgument,
                     result: ConversionArgument| {
             let size = combine!(
-                1110|1110|1D11|1ccc|dddd|101|z|o1m0|llll,
-
+                1110 | 1110 | 1D11 | 1ccc | dddd | 101 | z | o1m0 | llll,
                 d,
                 opc2,
                 sd,
@@ -2850,7 +2838,7 @@ mod test {
                     (sm, m): (u32, u32),
                     result: ConversionArgument| {
             let size = combine!(
-                1110|1110|1D11|1ccc|dddd|101|z|o1m0|llll,
+                1110 | 1110 | 1D11 | 1ccc | dddd | 101 | z | o1m0 | llll,
                 d,
                 opc2,
                 sd,
@@ -2941,7 +2929,7 @@ mod test {
         let sz = 0u32;
         let test = |rounding_mode: u32| {
             let size = combine!(
-                1111|1110|1D11|10rr|dddd|101|z|01m0|llll,
+                1111 | 1110 | 1D11 | 10rr | dddd | 101 | z | 01m0 | llll,
                 d,
                 rounding_mode,
                 sd,
@@ -2971,7 +2959,7 @@ mod test {
         let sz = 1u32;
         let test = |rounding_mode: u32| {
             let size = combine!(
-                1111|1110|1D11|10rr|dddd|101|z|01m0|llll,
+                1111 | 1110 | 1D11 | 10rr | dddd | 101 | z | 01m0 | llll,
                 d,
                 rounding_mode,
                 sd,
@@ -3013,7 +3001,7 @@ mod test {
                     source: ConversionArgument,
                     dest: ConversionArgument| {
             let size = combine!(
-                1110|1110|1D11|1o1u|dddd|101|s|x|1i0|llll,
+                1110 | 1110 | 1D11 | 1o1u | dddd | 101 | s | x | 1i0 | llll,
                 d,
                 op,
                 u,
@@ -3115,7 +3103,7 @@ mod test {
                     source: ConversionArgument,
                     dest: ConversionArgument| {
             let size = combine!(
-                1110|1110|1D11|1o1u|dddd|101|s|x|1i0|llll,
+                1110 | 1110 | 1D11 | 1o1u | dddd | 101 | s | x | 1i0 | llll,
                 d,
                 op,
                 u,
