@@ -8,8 +8,9 @@ use crate::{arch::Condition, instruction, operation, Parse, ParseError, ToOperat
 instruction!(
     size u16; A5_7 contains
     It : {
-        mask        as u8    : u8    : 0 -> 3 ,
-        firstcond    as u8   : Condition    : 4 -> 7 try_into
+        mask        as u8    : u8           : 0 -> 3 ,
+        firstcond   as u8    : Condition    : 4 -> 7 try_into,
+        body        as u8    : u8           : 0 -> 7
     },
     Nop : {},
     Yield : {},
@@ -48,6 +49,7 @@ impl ToOperation for A5_7 {
         Ok(match self {
             Self::It(it) => operation::It::builder()
                 .set_conds((it.firstcond, it.mask).into())
+                .set_bit_pattern(it.body)
                 .complete()
                 .into(),
             Self::Nop(_) => operation::Nop::builder().complete().into(),

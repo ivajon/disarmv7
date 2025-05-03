@@ -112,7 +112,7 @@ pub mod operation;
 
 use std::fmt::Debug;
 
-use arch::ArchError;
+use arch::{ArchError, Mask};
 use asm::b16::B16;
 use operation::Operation;
 
@@ -274,8 +274,9 @@ impl Parse for operation::Operation {
             return Err(ParseError::IncompleteProgram);
         }
         let halfword = halfword.unwrap();
+        let masked = halfword.mask::<11, 15>();
 
-        Ok(match halfword >> 11 {
+        Ok(match masked {
             0b11101..=0b11111 => B32::parse(iter)?,
             _ => B16::parse(iter)?,
         })

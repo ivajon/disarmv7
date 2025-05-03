@@ -160,6 +160,7 @@ impl Parse for A5_10 {
             rn : u32 : 16 -> 19,
             op : u32 : 21 -> 24 // Discard bit nr 20 as this is x in all cases
         );
+
         if op == 0 {
             if rd != 0b1111 {
                 return Ok(Self::And(And::parse(iter)?));

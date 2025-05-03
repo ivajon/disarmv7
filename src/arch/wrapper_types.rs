@@ -159,7 +159,6 @@ macro_rules! into {
             $(
                 impl From<$source> for $target{
                     fn from(val:$source) -> $target{
-
                         val.val as $target
                     }
                 }

@@ -167,7 +167,7 @@ operation!(
 
     Isb {option: Imm4}
 
-    It <conds: ITCondition>/* , <mask: Imm4> */
+    It <conds: ITCondition>, <bit_pattern: u8>
 
     // ==================================== L ====================================
 

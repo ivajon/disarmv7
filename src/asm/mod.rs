@@ -8,8 +8,9 @@ pub mod b32;
 pub(crate) trait LocalTryInto<T> {
     fn local_try_into(self) -> Result<T, ParseError>;
 }
-
-pub(crate) trait Mask {
+/// Helper to mask fields from a type.
+pub trait Mask {
+    /// Masks out the bit field from START until END.
     fn mask<const START: usize, const END: usize>(&self) -> Self;
 }
 
