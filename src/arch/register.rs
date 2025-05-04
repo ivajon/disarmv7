@@ -149,6 +149,7 @@ reg!(
     S17,
     S18,
     S19,
+    S20,
     S21,
     S22,
     S23,
@@ -339,5 +340,18 @@ impl TryFrom<u16> for RegisterList {
             }
         }
         Ok(Self { registers })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::hint::black_box;
+
+    use super::F32Register;
+
+    #[test]
+    fn test() {
+        let register: F32Register = 31u8.try_into().unwrap();
+        black_box(&register);
     }
 }
