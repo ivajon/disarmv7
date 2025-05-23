@@ -501,6 +501,9 @@ operation!(
     VmulF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
     VmulF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
 
+    VfmxF32 <sd:F32Register>, <sn:F32Register>, <sm:F32Register>, <negate:bool>
+    VfmxF64 <dd:F64Register>, <dn:F64Register>, <dm:F64Register>, <negate:bool>
+
     VaddF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
     VaddF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
 

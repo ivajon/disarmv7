@@ -22,6 +22,7 @@ pub mod a6_5;
 pub mod a6_7;
 pub mod a6_8;
 pub mod a6_9;
+pub mod no_table;
 
 use macros::compare;
 
@@ -61,6 +62,13 @@ impl B32 {
             Some(value) => value,
             None => return Err(ParseError::IncompleteProgram),
         };
+
+        let mut forked: T = iter.fork();
+        // This is bad.
+        let no_table = no_table::NoTable::parse(&mut forked);
+        if let Ok(no_table) = no_table {
+            return no_table.encoding_specific_operations();
+        }
 
         if compare!(word == 111 | x | 1110 | xxxx | xxxx | xxxx | 101 | x | xx | x | 0 | xxxx) {
             return a6_5::A6_5::parse(iter)?.encoding_specific_operations();

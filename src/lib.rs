@@ -163,6 +163,8 @@ pub trait Stream: Consume<u32> + Consume<u16> + Consume<u8> + Debug {
             None => Err(ParseError::IncompleteProgram),
         }
     }
+    /// Forks the stream.
+    fn fork(&mut self) -> Self;
 }
 /// Denotes that the type can be constructed from a [`Stream`].
 pub trait Parse {
