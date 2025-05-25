@@ -25,9 +25,10 @@ instruction!(
         imm7 as u8 :u8 : 0->6
     },
     Cbz  : {
-        rn as u8 : Register : 0 ->  2   try_into,
-        imm5 as u8 : u8     : 3 ->  7,
-        op   as u8 : u8     : 11 -> 11
+        rn as u8   : Register   : 0 ->  2   try_into,
+        imm5 as u8 : u8         : 3 ->  7,
+        i    as u8 : u8         : 9 -> 9,
+        op   as u8 : u8         : 11 -> 11
     },
     Sxth : {
         rd as u8 : Register : 0 ->  2   try_into,
@@ -177,7 +178,7 @@ impl ToOperation for A5_6 {
             Self::Cbz(el) => operation::Cbz::builder()
                 .set_non(Some(el.op == 1))
                 .set_rn(el.rn)
-                .set_imm((el.imm5 as u32) << 1)
+                .set_imm(((el.i as u32) << 6) | ((el.imm5 as u32) << 1))
                 .complete()
                 .into(),
             Self::Sxth(el) => operation::Sxth::builder()

@@ -71,6 +71,9 @@ impl Parse for B16 {
     where
         Self: Sized,
     {
+        // if let Some(word) = iter.peek::<1>() as Option<u16> {
+        //     println!("parsing {word:#b}");
+        // }
         let ret = Self::parse_internal(iter)?;
         let _: u16 = match iter.consume::<1>() {
             Some(val) => val[0],
