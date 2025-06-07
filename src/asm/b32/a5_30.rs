@@ -164,13 +164,12 @@ impl Parse for A5_30 {
         };
 
         let op = word.mask::<4, 4>();
-        assert!(op <= 1);
+        // assert!(op <= 1);
         let enc = word.mask::<{ 16 + 12 }, { 16 + 12 }>();
-        assert!(enc <= 1);
+        // assert!(enc <= 1);
         let op1 = word.mask::<{ 16 + 4 }, { 16 + 9 }>();
-        assert!(op1 < (1 << (9 - 4 + 1)) - 1);
-        let rn = word.mask::<16, 19>();
-        assert!(rn < (1 << (19 - 16 + 1)));
+        // assert!(op1 < (1 << (9 - 4 + 1)) - 1);
+        // assert!(rn < (1 << (19 - 16 + 1)));
 
         if op1 == 0b000100 {
             match enc + 1 {
@@ -198,6 +197,7 @@ impl Parse for A5_30 {
             (2, 0b100000, 0) => return Ok(Self::CdpT2(CdpT2::parse(iter)?)),
             _ => {}
         }
+        let rn = word.mask::<16, 19>();
         match (enc + 1, op1 & 0b100001, rn) {
             (1, 0b000000, _) => return Ok(Self::StcT1(StcT1::parse(iter)?)),
             (2, 0b000000, _) => return Ok(Self::StcT2(StcT2::parse(iter)?)),

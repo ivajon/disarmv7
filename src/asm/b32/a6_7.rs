@@ -266,7 +266,7 @@ impl ToOperation for A6_7 {
             }) if t1 => Operation::VStmF64(operation::VStmF64 {
                 add: u,
                 wback: w,
-                imm32: b!((imm8;8),(00;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 registers: regs64!(vd, d, imm8),
             }),
@@ -283,7 +283,7 @@ impl ToOperation for A6_7 {
             }) => Operation::VStmF32(operation::VStmF32 {
                 add: u,
                 wback: w,
-                imm32: b!((imm8;8),(00;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 registers: regs32!(vd, d, imm8),
             }),
@@ -296,7 +296,7 @@ impl ToOperation for A6_7 {
                 u,
             }) if t1 => Operation::VStrF64(operation::VStrF64 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 dd: r64!(vd, d),
             }),
@@ -310,7 +310,7 @@ impl ToOperation for A6_7 {
                 u,
             }) => Operation::VStrF32(operation::VStrF32 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 sd: r32!(vd, d),
             }),
@@ -326,7 +326,7 @@ impl ToOperation for A6_7 {
                 p: _,
             }) if t1 => Operation::VLdmF64(operation::VLdmF64 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 wback: w,
                 registers: regs64!(vd, d, imm8),
@@ -343,15 +343,19 @@ impl ToOperation for A6_7 {
                 p: _,
             }) => Operation::VLdmF32(operation::VLdmF32 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 wback: w,
                 registers: regs32!(vd, d, imm8),
             }),
-            Self::VPop(VPop { imm8, t1, vd, d }) if t1 => Operation::VPopF64(operation::VPopF64 {
-                imm32: b!((imm8;8),(0;2)),
-                registers: regs64!(vd, d, imm8),
-            }),
+            Self::VPop(VPop { imm8, t1, vd, d }) if t1 => {
+                let regs =
+                    forcibly_collect((0..=(d >> 2)).map(|idx| vd + idx).map(|el| el.try_into()))?;
+                Operation::VPopF64(operation::VPopF64 {
+                    imm32: (imm8 as u32) << 2,
+                    registers: regs,
+                })
+            }
 
             Self::VPop(VPop {
                 imm8,
@@ -360,13 +364,15 @@ impl ToOperation for A6_7 {
                 vd,
                 d,
             }) => Operation::VPopF32(operation::VPopF32 {
-                imm32: b!((imm8;8),(0;2)),
-                registers: regs32!(vd, d, imm8),
+                imm32: (imm8 as u32) << 2,
+                registers: forcibly_collect((0..d).map(|idx| vd + idx).map(|el| el.try_into()))?,
             }),
             Self::VPush(VPush { imm8, t1, vd, d }) if t1 => {
+                let regs =
+                    forcibly_collect((0..=(d >> 2)).map(|idx| vd + idx).map(|el| el.try_into()))?;
                 Operation::VPushF64(operation::VPushF64 {
-                    imm32: b!((imm8;8),(0;2)),
-                    registers: regs64!(vd, d, imm8),
+                    imm32: (imm8 as u32) << 2,
+                    registers: regs,
                 })
             }
             Self::VPush(VPush {
@@ -375,11 +381,14 @@ impl ToOperation for A6_7 {
                 t1: _,
                 vd,
                 d,
-            }) => Operation::VPushF32(operation::VPushF32 {
-                imm32: b!((imm8;8),(0;2)),
+            }) => {
+                let regs = forcibly_collect((0..d).map(|idx| vd + idx).map(|el| el.try_into()))?;
 
-                registers: regs32!(vd, d, imm8),
-            }),
+                Operation::VPushF32(operation::VPushF32 {
+                    imm32: (imm8 as u32) << 2,
+                    registers: regs,
+                })
+            }
             Self::VLdr(VLdr {
                 imm8,
                 t1,
@@ -389,7 +398,7 @@ impl ToOperation for A6_7 {
                 u,
             }) if t1 => Operation::VLdrF64(operation::VLdrF64 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 dd: r64!(vd, d),
             }),
@@ -403,7 +412,7 @@ impl ToOperation for A6_7 {
                 u,
             }) => Operation::VLdrF32(operation::VLdrF32 {
                 add: u,
-                imm32: b!((imm8;8),(0;2)),
+                imm32: (imm8 as u32) << 2,
                 rn,
                 sd: r32!(vd, d),
             }),

@@ -724,7 +724,7 @@ fn vfpexpandimm32(imm8: u8) -> u32 {
     let e = if N == 32 { 8 } else { 11 };
 
     let f = N - e - 1;
-    let sign = imm8 >> 7;
+    let sign = imm8.mask::<7, 7>();
     // Assumes that imm is a single bit.
     const fn replicate(imm: u8, mut n: u32) -> u32 {
         let mut ret: u32 = 0;
@@ -735,9 +735,18 @@ fn vfpexpandimm32(imm8: u8) -> u32 {
         }
         ret
     }
-    let (exp, exp_size) = b!(sized : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
-    let (frac, frac_size) = b!(sized : (imm8.mask::<0,3>();4),(f-4;0));
-    b!((sign;1),(exp;exp_size), (frac;frac_size))
+    let exp = (!imm8).mask::<6, 6>() as u32;
+    let exp = (exp << (e - 3)) | (replicate((imm8 >> 6) & 0b1, e - 3));
+    let exp = (exp << 2) | imm8.mask::<4, 5>() as u32;
+    let exp_size = 2 + e - 3 + 1;
+
+    let frac = (imm8.mask::<0, 3>() as u32) << (f - 4);
+    let frac_size = 4 + f - 4;
+    let ret = (sign as u32) << (exp_size + frac_size);
+    let ret = ret | (exp << frac_size);
+    let ret = ret | frac;
+
+    ret
 }
 
 fn vfpexpandimm64(imm8: u8) -> u64 {
@@ -756,9 +765,18 @@ fn vfpexpandimm64(imm8: u8) -> u64 {
         }
         ret
     }
-    let (exp, exp_size) = b!(sized (u64) : ((((!imm8) >> 6) & 0b1);1),(replicate((imm8 >> 6) & 0b1,e - 3); e-3),(imm8.mask::<4,5>();2));
-    let (frac, frac_size) = b!(sized (u64) : (imm8.mask::<0,3>();4),(f-4;0));
-    b!((u64) : (sign;1),(exp;exp_size), (frac;frac_size))
+    let exp = (!imm8).mask::<6, 6>() as u64;
+    let exp = (exp << (e - 3)) | (replicate((imm8 >> 6) & 0b1, e - 3));
+    let exp = (exp << 2) | imm8.mask::<4, 5>() as u64;
+    let exp_size = 2 + e - 3 + 1;
+
+    let frac = (imm8.mask::<0, 3>() as u64) << (f - 4);
+    let frac_size = 4 + f - 4;
+    let ret = (sign as u64) << (exp_size + frac_size);
+    let ret = ret | (exp << frac_size);
+    let ret = ret | frac;
+
+    ret
 }
 
 macro_rules! r32 {
