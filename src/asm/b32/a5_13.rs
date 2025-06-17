@@ -1,3 +1,4 @@
+#![allow(clippy::cast_lossless)]
 use paste::paste;
 
 use crate::{
@@ -77,13 +78,13 @@ impl Parse for A5_13 {
             if op >> 1 == 0b11100 {
                 return Ok(Self::Msr(Msr::parse(iter)?));
             }
-            if op >> 1 == 0b011111 {
+            if op >> 1 == 0b01_1111 {
                 return Ok(Self::Mrs(Mrs::parse(iter)?));
-            };
-            if op == 0b0111010 {
+            }
+            if op == 0b011_1010 {
                 return Ok(Self::SubtableA5_14(A5_14::parse(iter)?));
             }
-            if op == 0b0111011 {
+            if op == 0b011_1011 {
                 return Ok(Self::SubtableA5_15(A5_15::parse(iter)?));
             }
         }

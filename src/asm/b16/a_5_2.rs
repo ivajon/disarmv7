@@ -103,7 +103,7 @@ impl Parse for A5_2 {
             6 => return Ok(Self::AddImmediate8(AddImmediate8::parse(iter)?)),
             7 => return Ok(Self::SubImmediate8(SubImmediate8::parse(iter)?)),
             _ => {}
-        };
+        }
         match opcode {
             0b01100 => Ok(Self::Add(Add::parse(iter)?)),
             0b01101 => Ok(Self::Sub(Sub::parse(iter)?)),
@@ -167,40 +167,40 @@ impl ToOperation for A5_2 {
                 .set_s(Some(SetFlags::InITBlock(false)))
                 .set_rd(Some(add.rd))
                 .set_rn(add.rn)
-                .set_imm(add.imm as u32)
+                .set_imm(u32::from(add.imm))
                 .complete()
                 .into(),
             Self::SubImmediate3(sub) => operation::SubImmediateBuilder::new()
                 .set_s(Some(SetFlags::InITBlock(false)))
                 .set_rd(Some(sub.rd))
                 .set_rn(sub.rn)
-                .set_imm(sub.imm as u32)
+                .set_imm(u32::from(sub.imm))
                 .complete()
                 .into(),
             Self::Mov(mov) => operation::MovImmediateBuilder::new()
                 .set_s(Some(SetFlags::InITBlock(false)))
                 .set_rd(mov.rd)
-                .set_imm(mov.imm as u32)
+                .set_imm(u32::from(mov.imm))
                 .set_carry(None)
                 .complete()
                 .into(),
             Self::Cmp(cmp) => operation::CmpImmediateBuilder::new()
                 .set_rn(cmp.rn)
-                .set_imm(cmp.imm as u32)
+                .set_imm(u32::from(cmp.imm))
                 .complete()
                 .into(),
             Self::AddImmediate8(add) => operation::AddImmediateBuilder::new()
                 .set_s(Some(arch::SetFlags::InITBlock(false)))
                 .set_rd(None)
                 .set_rn(add.rdn)
-                .set_imm(add.imm as u32)
+                .set_imm(u32::from(add.imm))
                 .complete()
                 .into(),
             Self::SubImmediate8(sub) => operation::SubImmediateBuilder::new()
                 .set_s(Some(SetFlags::InITBlock(false)))
                 .set_rd(None)
                 .set_rn(sub.rdn)
-                .set_imm(sub.imm as u32)
+                .set_imm(u32::from(sub.imm))
                 .complete()
                 .into(),
         })

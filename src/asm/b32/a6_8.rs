@@ -57,6 +57,7 @@ instruction!(
 impl Parse for A6_8 {
     type Target = Self;
 
+    #[allow(clippy::many_single_char_names)]
     fn parse<T: Stream>(iter: &mut T) -> Result<Self::Target, ParseError>
     where
         Self: Sized,
@@ -113,7 +114,7 @@ macro_rules! b {
         let mut accumulator:u32 = 0;
         $(
         let (size, value) = e!($($e)*);
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -140,7 +141,7 @@ macro_rules! b {
         $(
         let (size, value) = e!($($e)*);
         total_size += size as usize;
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -173,10 +174,10 @@ macro_rules! e {
     ($id:ident[$start:literal..$end:literal]) => {
         ($start-$end + 1,$id.mask::<$start,$end>)
     };
-    ($e:expr; $size:literal) => {
+    ($e:expr_2021; $size:literal) => {
         ($size,$e)
     };
-    ($e:expr; $size:expr) => {
+    ($e:expr_2021; $size:expr_2021) => {
         ($size,$e)
     };
 }

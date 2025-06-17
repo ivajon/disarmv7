@@ -41,7 +41,7 @@ instruction!(
 impl ToOperation for Ldr {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(operation::LdrLiteral::builder()
-            .set_imm((self.imm8 as u32) << 2)
+            .set_imm((u32::from(self.imm8)) << 2)
             .set_add(true)
             .set_rt(self.rt)
             .complete()
@@ -52,7 +52,7 @@ impl ToOperation for Ldr {
 impl ToOperation for Adr {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(operation::Adr::builder()
-            .set_imm((self.imm8 as u32) << 2)
+            .set_imm((u32::from(self.imm8)) << 2)
             .set_add(true)
             .set_rd(self.rd)
             .complete()
@@ -63,7 +63,7 @@ impl ToOperation for Adr {
 impl ToOperation for Add {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(operation::AddSPImmediate::builder()
-            .set_imm((self.imm8 as u32) << 2)
+            .set_imm((u32::from(self.imm8)) << 2)
             .set_rd(Some(self.rd))
             .set_s(Some(false))
             .complete()

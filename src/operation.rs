@@ -8,7 +8,7 @@ use crate::arch::{
     coproc::CoProcessor,
     register::{F32Register, F64Register, IEEE754RoundingMode, Register, RegisterList},
     shift::ImmShift,
-    wrapper_types::*,
+    wrapper_types::{Imm2, Imm4},
     SetFlags,
 };
 
@@ -20,19 +20,19 @@ macro_rules! operation{
             $(
                 $pseudo_code_line:literal
             )*
-            $(#[doc = $comment:expr])*
+            $(#[doc = $comment:expr_2021])*
             $name:ident $(
                 // Optional field
                 $(
                     {
-                         $(#[doc = $field_comment:expr])*
+                         $(#[doc = $field_comment:expr_2021])*
                         $field_name:ident : $field_type:ty
                     }
                 )?
                 // Required field
                 $(
                     <
-                        $(#[doc = $mand_field_comment:expr])*
+                        $(#[doc = $mand_field_comment:expr_2021])*
                         $field_name_must_exist:ident : $field_type_must_exist:ty
                     >
                 )?
@@ -46,6 +46,7 @@ macro_rules! operation{
             $(
                 #[doc = $comment]
             )*
+            #[allow(clippy::derive_partial_eq_without_eq)]
             #[derive(Builder,Consumer,Debug,Clone,PartialEq)]
             pub struct $name {
                 $(
@@ -70,6 +71,7 @@ macro_rules! operation{
                 }
             }
         )*
+        #[allow(clippy::derive_partial_eq_without_eq)]
         /// All of the instructions available in the armv7 instruction set.
         #[derive(Debug,Clone,PartialEq)]
         pub enum Operation {
@@ -81,6 +83,7 @@ macro_rules! operation{
             ),*
         }
         impl  Operation {
+            #[must_use]
             /// Returns the name of the given operation.
             pub const fn name(&self) -> &'static str {
                 match self {
@@ -611,7 +614,7 @@ operation!(
     Yield <>
 );
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum ConversionArgument {
     F32(F32Register),
     F64(F64Register),
@@ -625,19 +628,19 @@ pub enum ConversionArgument {
     U16F64(F64Register),
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum IntType {
     U32(F32Register),
     I32(F32Register),
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum F32OrF64 {
     F32(F32Register),
     F64(F64Register),
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum RegisterOrAPSR {
     APSR,
     Register(Register),

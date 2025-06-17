@@ -1,3 +1,4 @@
+#![allow(clippy::cast_lossless)]
 use paste::paste;
 
 use crate::{
@@ -227,6 +228,7 @@ macro_rules! combine_wrapper {
 }
 
 impl ToOperation for A5_10 {
+    #[allow(clippy::enum_glob_use)]
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         use A5_10::*;
         Ok(match self {

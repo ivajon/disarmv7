@@ -1,4 +1,10 @@
 //! Creates a few helper types to make translations clearer.
+#![allow(
+    clippy::cast_lossless,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::derive_partial_eq_without_eq
+)]
 
 use crate::{arch::Mask, ArchError};
 
@@ -24,12 +30,14 @@ macro_rules! combine {
 }
 
 impl Imm12 {
+    #[must_use]
     /// Expands the value using [`expand_imm_c`](Imm12::expand_imm_c) and
     /// discards the carry flag.
     pub fn expand_imm(self) -> u32 {
         self.expand_imm_c().0
     }
 
+    #[must_use]
     /// Expands the immediate value in the manner described in the
     /// [`documentation`](
     ///     https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjc6YCk0fiEAxUSLhAIHU-1BY8QFnoECBQQAQ&url=https%3A%2F%2Fdocumentation-service.arm.com%2Fstatic%2F5f8fef3af86e16515cdbf816%3Ftoken%3D&usg=AOvVaw1Pwok2Ulie5wtDRP5IwyNw&opi=89978449
@@ -57,8 +65,9 @@ impl Imm12 {
         (ret, Some(c))
     }
 
+    #[must_use]
     /// Returns the underlying representation of the value.
-    pub fn inner(self) -> u16 {
+    pub const fn inner(self) -> u16 {
         self.val
     }
 }
@@ -70,6 +79,7 @@ mod sealed {
     }
 }
 
+#[must_use]
 /// Replaces all bits after `BIT` with the value of `BIT`.
 pub fn sign_extend<const BIT: usize>(el: &u32) -> i32 {
     let np1: u32 = 1 << BIT;
@@ -84,6 +94,7 @@ pub fn sign_extend<const BIT: usize>(el: &u32) -> i32 {
     ret as i32
 }
 
+#[must_use]
 /// Replaces all bits after `BIT` with the value of `BIT`.
 pub fn sign_extend_u32<const BIT: usize>(el: &u32) -> u32 {
     let np1: u32 = 1 << BIT;
@@ -99,16 +110,18 @@ pub fn sign_extend_u32<const BIT: usize>(el: &u32) -> u32 {
 
 /// Allows the implementor to be extended with the value at index `BIT`.
 pub trait SignExtendGeneric<T: Sized> {
+    #[must_use]
     /// Extends the rest of the value with the bit at index BIT.
     /// indexes start at 0
     fn sign_extend<const BIT: usize>(&mut self) -> T;
 }
 
 /// Allows the implementor to be extended with the value at index defined by
-/// SignBit.
+/// `SignBit`.
 pub trait SignExtend<T: Sized>: sealed::SignBit {
     /// The number of bits in the target
     const TARGET_SIZE: usize = std::mem::size_of::<T>() * 8;
+    #[must_use]
     /// Extends the rest of the value with the bit at index BIT.
     /// indexes start at 0
     fn sign_extend(&mut self) -> T;
@@ -157,6 +170,7 @@ macro_rules! into {
     )*) => {
         $(
             $(
+                #[allow(clippy::cast_lossless)]
                 impl From<$source> for $target{
                     fn from(val:$source) -> $target{
                         val.val as $target
@@ -179,6 +193,8 @@ macro_rules! sign_extend {
                 const BIT:usize = $bit;
             }
             $(
+                #[allow(clippy::cast_possible_wrap)]
+                #[allow(clippy::cast_lossless)]
                 impl SignExtend<$target> for $source {
                     fn sign_extend(&mut self) -> $target {
                         let np1: $intermediate =   (1 << <Self as sealed::SignBit>::BIT);

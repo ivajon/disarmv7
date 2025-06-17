@@ -62,12 +62,12 @@ impl<T: Sized + Iterator<Item = u8>> PeekableBuffer<u8, T> {
     fn peek_count(&mut self) -> bool {
         let mut ret = [0_u8; 2];
         let mut counter = 0;
-        ret.iter_mut().for_each(|t| {
+        for t in &mut ret {
             if let Some(el) = self.iter.next() {
                 *t = el;
                 counter += 1;
             }
-        });
+        }
         // Convert to bytes in this machines order
         let intermediate = &u16::from_le_bytes(ret).to_ne_bytes()[0..counter];
         self.peeked_elements.extend(intermediate.iter().rev());
@@ -82,7 +82,7 @@ where
     fn peek<const N: usize>(&mut self) -> Option<u32> {
         let first: u16 = self.peek::<1>()?;
         let second: u16 = self.peek::<2>()?;
-        let ret = ((first as u32) << 16) | (second as u32);
+        let ret = ((u32::from(first)) << 16) | (u32::from(second));
 
         // Get the new byte and return it as a u32
         Some(ret)
@@ -133,11 +133,11 @@ impl<T: Iterator<Item = u8> + Debug> Consume<u32> for PeekableBuffer<u8, T> {
 
         if N == 1 {
             let [first, second]: [u16; 2] = self.consume::<2>()?;
-            return Some([((first as u32) << 16) | (second as u32); N]);
+            return Some([(u32::from(first) << 16) | u32::from(second); N]);
         }
 
         let mut ret = [0; N];
-        for el in ret.iter_mut() {
+        for el in &mut ret {
             *el = self.consume::<1>()?[0];
         }
         Some(ret)
@@ -152,7 +152,7 @@ impl<T: Iterator<Item = u8> + Debug> Consume<u16> for PeekableBuffer<u8, T> {
         }
 
         let mut ret = [0; N];
-        for el in ret.iter_mut() {
+        for el in &mut ret {
             *el = self.consume::<1>()?[0];
         }
         Some(ret)
@@ -173,7 +173,7 @@ impl<T: Iterator<Item = u8> + Debug> Consume<u8> for PeekableBuffer<u8, T> {
         }
 
         let mut ret = [0; N];
-        for el in ret.iter_mut() {
+        for el in &mut ret {
             *el = self.consume::<1>()?[0];
         }
         Some(ret)

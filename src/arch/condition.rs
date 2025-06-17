@@ -3,7 +3,7 @@
 
 use crate::ArchError;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Derived from section A7.3
 pub enum Condition {
     /// Exactly equal to, z == 1
@@ -38,7 +38,7 @@ pub enum Condition {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// If then Else block
 ///
 /// This type defines how to [`Parse`](ITCondition::from)
@@ -55,7 +55,8 @@ pub struct ITCondition {
 }
 
 impl Condition {
-    fn invert(&self) -> Self {
+    #[must_use]
+    const fn invert(&self) -> Self {
         match self {
             Self::Eq => Self::Ne,
             Self::Ne => Self::Eq,

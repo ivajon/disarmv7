@@ -2,7 +2,7 @@
   Disarmv7
 </h1>
 
-Disarmv7 is a disassembler for the ArmV7-M instruction set. It provides a fast enough disassembler that lifts [most](#footnotes)$^1$ of the ArmV7-m instructions to a rust `enum` which is ideal if you want to do semantic analysis, [symbolic execution](https://github.com/ivario123/symex) or similar on
+Disarmv7 is a disassembler for the ArmV7-M instruction set. It provides a fast enough disassembler that lifts the ArmV7-m instructions to a rust `enum` which is usefull if you want to do semantic analysis, [symbolic execution](https://github.com/ivario123/symex) or similar on
 the assembly/machine code level. As of now, it does not provide a textual representation of the assembly instructions.
 This project is mainly written as a support project for the [Symex](https://github.com/ivario123/symex) project which is a symbolic execution engine that provides safe-to-use execution time estimates for each possible path through the program. But can be used as a standalone project for parsing ArmV7-M binaries.
 
@@ -33,8 +33,3 @@ Before contributing you should read the short [documentation](./CONTRIBUTING.md)
 ## License
 
 This repository is licensed under the [MIT](./LICENSE) license and any contributions shall be licensed under the same license unless explicitly stated otherwise.
-
-## Footnotes
-
-- [1] The disassembler does not support the floating point extensions as of now.
-- [2] For further documentation on this please read the documentation for [Object](https://docs.rs/object/latest/object/).

@@ -218,7 +218,7 @@ impl ToOperation for A5_5 {
                 .set_add(true)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm((el.imm5 as u32) << 2)
+                .set_imm((u32::from(el.imm5)) << 2)
                 .complete()
                 .into(),
             Self::LdrI(el) => operation::LdrImmediate::builder()
@@ -227,7 +227,7 @@ impl ToOperation for A5_5 {
                 .set_index(true)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm((el.imm5 as u32) << 2)
+                .set_imm((u32::from(el.imm5)) << 2)
                 .complete()
                 .into(),
             Self::StrbI(el) => operation::StrbImmediate::builder()
@@ -236,7 +236,7 @@ impl ToOperation for A5_5 {
                 .set_add(true)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm5 as u32)
+                .set_imm(u32::from(el.imm5))
                 .complete()
                 .into(),
             Self::LdrbI(el) => operation::LdrbImmediate::builder()
@@ -245,7 +245,7 @@ impl ToOperation for A5_5 {
                 .set_index(true)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm5 as u32))
+                .set_imm(Some(u32::from(el.imm5)))
                 .complete()
                 .into(),
             Self::StrhI(el) => operation::StrhImmediate::builder()
@@ -254,7 +254,7 @@ impl ToOperation for A5_5 {
                 .set_w(false)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some((el.imm5 as u32) << 1))
+                .set_imm(Some(u32::from(el.imm5) << 1))
                 .complete()
                 .into(),
             Self::LdrhI(el) => operation::LdrhImmediate::builder()
@@ -263,7 +263,7 @@ impl ToOperation for A5_5 {
                 .set_index(Some(true))
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm((el.imm5 as u32) << 1)
+                .set_imm((u32::from(el.imm5)) << 1)
                 .complete()
                 .into(),
             Self::StrRI(el) => operation::StrImmediate::builder()
@@ -272,7 +272,7 @@ impl ToOperation for A5_5 {
                 .set_add(true)
                 .set_rt(el.rt)
                 .set_rn(13u8.try_into().unwrap())
-                .set_imm((el.imm8 as u32) << 2)
+                .set_imm((u32::from(el.imm8)) << 2)
                 .complete()
                 .into(),
             Self::LdrRI(el) => operation::LdrImmediate::builder()
@@ -281,7 +281,7 @@ impl ToOperation for A5_5 {
                 .set_index(true)
                 .set_rt(el.rt)
                 .set_rn(13u8.try_into().unwrap())
-                .set_imm((el.imm8 as u32) << 2)
+                .set_imm((u32::from(el.imm8)) << 2)
                 .complete()
                 .into(),
         })
