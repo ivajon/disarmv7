@@ -1,7 +1,7 @@
 use paste::paste;
 
 use crate::{
-    arch::wrapper_types::*,
+    arch::wrapper_types::Imm12,
     asm::{LocalTryInto, Mask},
     instruction,
     prelude::*,
@@ -120,7 +120,7 @@ impl ToOperation for A5_21 {
                 .set_add(el.u)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::StrbReg(el) => {
@@ -148,7 +148,7 @@ impl ToOperation for A5_21 {
                 .set_add(el.u)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::StrhReg(el) => {
@@ -176,7 +176,7 @@ impl ToOperation for A5_21 {
                 .set_add(el.u)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::StrReg(el) => {

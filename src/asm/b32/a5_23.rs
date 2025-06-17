@@ -120,7 +120,7 @@ impl ToOperation for A5_23 {
                     .set_s(Some(el.s.into()))
                     .set_rd(el.rd)
                     .set_rm(el.rm)
-                    .set_imm(shift.shift_n as u32)
+                    .set_imm(u32::from(shift.shift_n))
                     .complete()
                     .into()
             }
@@ -136,7 +136,7 @@ impl ToOperation for A5_23 {
                     .set_s(Some(el.s))
                     .set_rd(el.rd)
                     .set_rm(el.rm)
-                    .set_imm(shift.shift_n as u32)
+                    .set_imm(u32::from(shift.shift_n))
                     .complete()
                     .into()
             }

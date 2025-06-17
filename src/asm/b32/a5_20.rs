@@ -1,7 +1,7 @@
 use paste::paste;
 
 use crate::{
-    arch::wrapper_types::*,
+    arch::wrapper_types::{Imm12, Imm2},
     asm::{LocalTryInto, Mask},
     instruction,
     prelude::*,
@@ -145,7 +145,7 @@ impl Parse for A5_20 {
                 if (op2 >> 2) == 0b1110 {
                     return Err(ParseError::Unpredictable);
                 }
-                if (op2 & 0b100100) == 0b100100 {
+                if (op2 & 0b10_0100) == 0b10_0100 {
                     return Err(ParseError::Unpredictable);
                 }
                 return Err(ParseError::Invalid32Bit("A5_20"));
@@ -175,7 +175,7 @@ impl Parse for A5_20 {
             if op2 >> 2 == 0b1100 {
                 return Ok(Self::LdrbImmediateT3(LdrbImmediateT3::parse(iter)?));
             }
-            if op2 & 0b100100 == 0b100100 {
+            if op2 & 0b10_0100 == 0b10_0100 {
                 return Ok(Self::LdrbImmediateT3(LdrbImmediateT3::parse(iter)?));
             }
             return Err(ParseError::Invalid32Bit("A5_20"));
@@ -196,7 +196,7 @@ impl Parse for A5_20 {
         if (op2 >> 2) == 0b1100 {
             return Ok(Self::LdrsbImmediateT2(LdrsbImmediateT2::parse(iter)?));
         }
-        if (op2 & 0b100100) == 0b100100 {
+        if (op2 & 0b10_0100) == 0b10_0100 {
             return Ok(Self::LdrsbImmediateT2(LdrsbImmediateT2::parse(iter)?));
         }
         Err(ParseError::Invalid32Bit("A5_20"))
@@ -227,13 +227,13 @@ impl ToOperation for A5_20 {
                 .set_index(el.p)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::Ldrbt(el) => operation::Ldrbt::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::LdrbRegister(el) => {
@@ -268,13 +268,13 @@ impl ToOperation for A5_20 {
                 .set_wback(el.w)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::Ldrsbt(el) => operation::Ldrsbt::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::LdrsbRegister(el) => {
@@ -301,7 +301,7 @@ impl ToOperation for A5_20 {
             Self::PldImmediateT2(el) => operation::PldImmediate::builder()
                 .set_add(Some(false))
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::PldRegister(el) => {
@@ -322,7 +322,7 @@ impl ToOperation for A5_20 {
             Self::PliImmediateT2(el) => operation::PliImmediate::builder()
                 .set_add(Some(false))
                 .set_rn(Some(el.rn))
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::PliImmediateT3(el) => operation::PliImmediate::builder()

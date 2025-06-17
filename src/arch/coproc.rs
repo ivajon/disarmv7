@@ -5,7 +5,7 @@ use crate::ArchError;
 macro_rules! coproc {
     ($($coproc:ident),*) => {
         #[repr(u8)]
-        #[derive(Debug,Copy,Clone,PartialEq)]
+        #[derive(Debug,Copy,Clone,PartialEq,Eq)]
         /// Enumerates the co processors that are available
         /// to the system
         #[allow(missing_docs)]

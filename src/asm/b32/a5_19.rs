@@ -1,7 +1,7 @@
 use paste::paste;
 
 use crate::{
-    arch::wrapper_types::*,
+    arch::wrapper_types::{Imm12, Imm2},
     asm::{LocalTryInto, Mask},
     instruction,
     prelude::*,
@@ -102,7 +102,7 @@ impl Parse for A5_19 {
             if op2 == 0 {
                 return Ok(Self::LdrhRegister(LdrhRegister::parse(iter)?));
             }
-            if (op2 >> 2) == 0b1100 || (op2 & 0b100100) == 0b100100 {
+            if (op2 >> 2) == 0b1100 || (op2 & 0b10_0100) == 0b10_0100 {
                 return Ok(Self::LdrhImmediateT3(LdrhImmediateT3::parse(iter)?));
             }
             if op2 >> 2 == 0b1110 {
@@ -114,7 +114,7 @@ impl Parse for A5_19 {
             return Ok(Self::LdrhImmediateT2(LdrhImmediateT2::parse(iter)?));
         }
         if op1 == 2 {
-            if op2 & 0b100100 == 0b100100 || op2 >> 2 == 0b1100 {
+            if op2 & 0b10_0100 == 0b10_0100 || op2 >> 2 == 0b1100 {
                 return Ok(Self::LdrshImmediateT2(LdrshImmediateT2::parse(iter)?));
             }
             if op2 == 0 {
@@ -157,7 +157,7 @@ impl ToOperation for A5_19 {
                 .set_index(Some(el.p))
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::LdrhRegister(el) => {
@@ -185,7 +185,7 @@ impl ToOperation for A5_19 {
                 .set_wback(el.w)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::LdrshLiteral(el) => operation::LdrshLiteral::builder()
@@ -207,13 +207,13 @@ impl ToOperation for A5_19 {
             Self::Ldrsht(el) => operation::Ldrsht::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::Ldrht(el) => operation::Ldrht::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
         })

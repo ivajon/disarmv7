@@ -171,40 +171,40 @@ impl Parse for A5_30 {
         // assert!(op1 < (1 << (9 - 4 + 1)) - 1);
         // assert!(rn < (1 << (19 - 16 + 1)));
 
-        if op1 == 0b000100 {
+        if op1 == 0b00_0100 {
             match enc + 1 {
                 1 => return Ok(Self::McrrT1(McrrT1::parse(iter)?)),
                 2 => return Ok(Self::McrrT2(McrrT2::parse(iter)?)),
                 _ => unreachable!("This is unreachable due to previous asserts"),
             }
         }
-        if op1 == 0b000101 {
+        if op1 == 0b00_0101 {
             match enc + 1 {
                 1 => return Ok(Self::MrrcT1(MrrcT1::parse(iter)?)),
                 2 => return Ok(Self::MrrcT2(MrrcT2::parse(iter)?)),
                 _ => unreachable!("This is unreachable due to previous asserts"),
             }
         }
-        match (enc + 1, op1 & 0b110001, op) {
-            (1, 0b100000, 1) => return Ok(Self::McrT1(McrT1::parse(iter)?)),
-            (2, 0b100000, 1) => return Ok(Self::McrT2(McrT2::parse(iter)?)),
-            (1, 0b100001, 1) => return Ok(Self::MrcT1(MrcT1::parse(iter)?)),
-            (2, 0b100001, 1) => return Ok(Self::MrcT2(MrcT2::parse(iter)?)),
+        match (enc + 1, op1 & 0b11_0001, op) {
+            (1, 0b10_0000, 1) => return Ok(Self::McrT1(McrT1::parse(iter)?)),
+            (2, 0b10_0000, 1) => return Ok(Self::McrT2(McrT2::parse(iter)?)),
+            (1, 0b10_0001, 1) => return Ok(Self::MrcT1(MrcT1::parse(iter)?)),
+            (2, 0b10_0001, 1) => return Ok(Self::MrcT2(MrcT2::parse(iter)?)),
             _ => {}
         }
-        match (enc + 1, op1 & 0b110000, op) {
-            (1, 0b100000, 0) => return Ok(Self::CdpT1(CdpT1::parse(iter)?)),
-            (2, 0b100000, 0) => return Ok(Self::CdpT2(CdpT2::parse(iter)?)),
+        match (enc + 1, op1 & 0b11_0000, op) {
+            (1, 0b10_0000, 0) => return Ok(Self::CdpT1(CdpT1::parse(iter)?)),
+            (2, 0b10_0000, 0) => return Ok(Self::CdpT2(CdpT2::parse(iter)?)),
             _ => {}
         }
         let rn = word.mask::<16, 19>();
-        match (enc + 1, op1 & 0b100001, rn) {
-            (1, 0b000000, _) => return Ok(Self::StcT1(StcT1::parse(iter)?)),
-            (2, 0b000000, _) => return Ok(Self::StcT2(StcT2::parse(iter)?)),
-            (1, 0b000001, 0b1111) => return Ok(Self::LdcLiteralT1(LdcLiteralT1::parse(iter)?)),
-            (2, 0b000001, 0b1111) => return Ok(Self::LdcLiteralT2(LdcLiteralT2::parse(iter)?)),
-            (1, 0b000001, _) => return Ok(Self::LdcImmediateT1(LdcImmediateT1::parse(iter)?)),
-            (2, 0b000001, _) => return Ok(Self::LdcImmediateT2(LdcImmediateT2::parse(iter)?)),
+        match (enc + 1, op1 & 0b10_0001, rn) {
+            (1, 0b00_0000, _) => return Ok(Self::StcT1(StcT1::parse(iter)?)),
+            (2, 0b00_0000, _) => return Ok(Self::StcT2(StcT2::parse(iter)?)),
+            (1, 0b00_0001, 0b1111) => return Ok(Self::LdcLiteralT1(LdcLiteralT1::parse(iter)?)),
+            (2, 0b00_0001, 0b1111) => return Ok(Self::LdcLiteralT2(LdcLiteralT2::parse(iter)?)),
+            (1, 0b00_0001, _) => return Ok(Self::LdcImmediateT1(LdcImmediateT1::parse(iter)?)),
+            (2, 0b00_0001, _) => return Ok(Self::LdcImmediateT2(LdcImmediateT2::parse(iter)?)),
             _ => {}
         }
         Err(ParseError::Invalid32Bit("a5_30"))
@@ -217,7 +217,7 @@ impl ToOperation for A5_30 {
                 .set_coproc(stc.coproc)
                 .set_crd(stc.crd)
                 .set_rn(stc.rn)
-                .set_imm(Some((stc.imm8 as u32) << 2))
+                .set_imm(Some(u32::from(stc.imm8) << 2))
                 .set_add(stc.u)
                 .set_w(stc.w)
                 .set_index(stc.p)
@@ -227,7 +227,7 @@ impl ToOperation for A5_30 {
                 .set_coproc(stc.coproc)
                 .set_crd(stc.crd)
                 .set_rn(stc.rn)
-                .set_imm(Some((stc.imm8 as u32) << 2))
+                .set_imm(Some(u32::from(stc.imm8) << 2))
                 .set_add(stc.u)
                 .set_w(stc.w)
                 .set_index(stc.p)
@@ -236,7 +236,7 @@ impl ToOperation for A5_30 {
             Self::LdcLiteralT1(ldc) => LdcLiteral::builder()
                 .set_coproc(ldc.coproc)
                 .set_crd(ldc.crd)
-                .set_imm((ldc.imm8 as u32) << 2)
+                .set_imm(u32::from(ldc.imm8) << 2)
                 .set_add(ldc.u)
                 .set_index(ldc.p)
                 .complete()
@@ -244,7 +244,7 @@ impl ToOperation for A5_30 {
             Self::LdcLiteralT2(ldc) => LdcLiteral::builder()
                 .set_coproc(ldc.coproc)
                 .set_crd(ldc.crd)
-                .set_imm((ldc.imm8 as u32) << 2)
+                .set_imm(u32::from(ldc.imm8) << 2)
                 .set_add(ldc.u)
                 .set_index(ldc.p)
                 .complete()
@@ -252,7 +252,7 @@ impl ToOperation for A5_30 {
             Self::LdcImmediateT1(ldc) => LdcImmediate::builder()
                 .set_coproc(ldc.coproc)
                 .set_crd(ldc.crd)
-                .set_imm(Some((ldc.imm8 as u32) << 2))
+                .set_imm(Some(u32::from(ldc.imm8) << 2))
                 .set_add(ldc.u)
                 .set_index(ldc.p)
                 .set_rn(ldc.rn)
@@ -262,7 +262,7 @@ impl ToOperation for A5_30 {
             Self::LdcImmediateT2(ldc) => LdcImmediate::builder()
                 .set_coproc(ldc.coproc)
                 .set_crd(ldc.crd)
-                .set_imm(Some((ldc.imm8 as u32) << 2))
+                .set_imm(Some(u32::from(ldc.imm8) << 2))
                 .set_add(ldc.u)
                 .set_index(ldc.p)
                 .set_rn(ldc.rn)

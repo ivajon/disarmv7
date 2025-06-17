@@ -2,7 +2,7 @@
 
 use crate::ArchError;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Enumerates the shift types that are defined in the system.
 pub enum Shift {
     /// Logical left shift.
@@ -17,7 +17,7 @@ pub enum Shift {
     Ror,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Denotes a shift defined in the encoding.
 ///
 /// These shifts are typically applied to a [`Register`](crate::arch::register).
@@ -53,7 +53,7 @@ impl From<(Shift, u8)> for ImmShift {
                 shift_n: 32,
             },
             (Shift::Asr, 0) => Self {
-                shift_t: Shift::Lsr,
+                shift_t: Shift::Asr,
                 shift_n: 32,
             },
             (Shift::Ror, 0) => Self {
@@ -61,7 +61,7 @@ impl From<(Shift, u8)> for ImmShift {
                 shift_n: 1,
             },
             // Catches  any
-            (shift_t, shift_n) => Self { shift_t, shift_n },
+            (shift_t, shift_n) => Self { shift_n, shift_t },
         }
     }
 }

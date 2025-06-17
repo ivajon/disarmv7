@@ -98,6 +98,7 @@ impl Parse for A5_27 {
 }
 
 impl ToOperation for A5_27 {
+    #[allow(clippy::wildcard_imports, clippy::enum_glob_use)]
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         use A5_27::*;
 

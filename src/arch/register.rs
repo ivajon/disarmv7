@@ -5,7 +5,7 @@ use crate::{ArchError, ParseError};
 macro_rules! reg {
     (#[doc = $docs:tt] $name:ident,$($reg:ident),*) => {
         #[repr(u8)]
-        #[derive(Debug,Copy,Clone,PartialEq)]
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         #[doc = $docs]
         #[allow(missing_docs)]
         pub enum $name {
@@ -65,17 +65,18 @@ macro_rules! reg {
         impl From<$name> for u16 {
             #[allow(unused_assignments)]
             fn from(val:$name) -> u16 {
-                u8::from(val) as u16
+                u16::from(u8::from(val))
             }
         }
         impl From<$name> for u32 {
             #[allow(unused_assignments)]
             fn from(val:$name) -> u32 {
-                u8::from(val) as u32
+                u32::from(u8::from(val))
             }
         }
         impl $name {
             /// Returns the regiosters name as a string.
+            #[must_use]
             pub fn name(&self) -> String{
                 match self {
                     $(
@@ -235,6 +236,7 @@ pub enum IEEE754RoundingMode {
 
 impl IEEE754RoundingMode {
     #[allow(clippy::wrong_self_convention)]
+    #[must_use]
     /// Converts the rounding mode to its u32 equivalent.
     pub const fn to_u32(&self) -> u32 {
         match self {
@@ -262,6 +264,7 @@ impl TryFrom<u8> for IEEE754RoundingMode {
 
 impl FPSCR {
     /// Sets the flags in the u32 representation of the memory.
+    #[must_use]
     pub const fn set(&self, previous_value: u32) -> u32 {
         if let Self::RMode(mode) = self {
             let mode = mode.to_u32();
@@ -274,11 +277,13 @@ impl FPSCR {
     ///
     /// if clearing the rounding mode it defaults to
     /// [`IEEE754RoundingMode::RN`].
+    #[must_use]
     pub const fn clear(&self, previous_value: u32) -> u32 {
         !self.mask() & previous_value
     }
 
     /// Returns the bits that are used in this register for that specific flag.
+    #[must_use]
     pub const fn mask(&self) -> u32 {
         match self {
             Self::N => Self::bitmask::<31, 31>(),
@@ -306,7 +311,7 @@ impl FPSCR {
 
 /// Register lists lifted from a bit vector to allow
 /// type level representations
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisterList {
     /// All of the registers in the register list.
     pub registers: Vec<Register>,
@@ -336,7 +341,7 @@ impl TryFrom<u16> for RegisterList {
         let mut registers = vec![];
         for i in 0..16_u8 {
             if (value >> i) & 0b1 == 0b1 {
-                registers.push(i.try_into()?)
+                registers.push(i.try_into()?);
             }
         }
         Ok(Self { registers })

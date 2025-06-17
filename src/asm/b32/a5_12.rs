@@ -1,3 +1,4 @@
+#![allow(clippy::cast_lossless)]
 use paste::paste;
 
 use crate::{
@@ -223,7 +224,7 @@ impl ToOperation for A5_12 {
                 let shift = ImmShift::from((shift, shift_n));
                 operation::SsatBuilder::new()
                     .set_rd(el.rd)
-                    .set_imm(el.sat_imm as u32 + 1)
+                    .set_imm(u32::from(el.sat_imm) + 1)
                     .set_rn(el.rn)
                     .set_shift(Some(shift))
                     .complete()
@@ -236,7 +237,7 @@ impl ToOperation for A5_12 {
                     .set_rd(el.rd)
                     .set_rn(el.rn)
                     .set_lsb(lsb)
-                    .set_msb(msb as u32)
+                    .set_msb(u32::from(msb))
                     .complete()
                     .into()
             }
@@ -246,7 +247,7 @@ impl ToOperation for A5_12 {
                 operation::BfcBuilder::new()
                     .set_rd(el.rd)
                     .set_lsb(lsb)
-                    .set_msb(msb as u32)
+                    .set_msb(u32::from(msb))
                     .complete()
                     .into()
             }
@@ -257,7 +258,7 @@ impl ToOperation for A5_12 {
                 let shift = ImmShift::from((shift, shift_n));
                 operation::UsatBuilder::new()
                     .set_rd(el.rd)
-                    .set_imm(el.sat_imm as u32)
+                    .set_imm(u32::from(el.sat_imm))
                     .set_rn(el.rn)
                     .set_shift(Some(shift))
                     .complete()
@@ -269,8 +270,8 @@ impl ToOperation for A5_12 {
                 operation::SbfxBuilder::new()
                     .set_rd(el.rd)
                     .set_rn(el.rn)
-                    .set_lsb(lsbit as u32)
-                    .set_width(el.widthm1 as u32 + 1)
+                    .set_lsb(u32::from(lsbit))
+                    .set_width(u32::from(el.widthm1) + 1)
                     .complete()
                     .into()
             }
@@ -280,8 +281,8 @@ impl ToOperation for A5_12 {
                 operation::UbfxBuilder::new()
                     .set_rd(el.rd)
                     .set_rn(el.rn)
-                    .set_lsb(lsbit as u32)
-                    .set_width(el.widthm1 as u32 + 1)
+                    .set_lsb(u32::from(lsbit))
+                    .set_width(u32::from(el.widthm1) + 1)
                     .complete()
                     .into()
             }
@@ -290,7 +291,7 @@ impl ToOperation for A5_12 {
                 operation::Ssat16Builder::new()
                     .set_rd(el.rd)
                     .set_rn(el.rn)
-                    .set_imm(saturate_to as u32)
+                    .set_imm(u32::from(saturate_to))
                     .complete()
                     .into()
             }
@@ -299,7 +300,7 @@ impl ToOperation for A5_12 {
                 operation::Usat16Builder::new()
                     .set_rd(el.rd)
                     .set_rn(el.rn)
-                    .set_imm(saturate_to as u32)
+                    .set_imm(u32::from(saturate_to))
                     .complete()
                     .into()
             }

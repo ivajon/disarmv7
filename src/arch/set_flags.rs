@@ -4,8 +4,8 @@
 //! behavior is dependent on wether or not the cpu is currently executing
 //! in a conditional block we need to reflect this behavior in the disassembler.
 
-/// Enumerates the possible SetFlags values
-#[derive(Debug, Clone, Copy, PartialEq)]
+/// Enumerates the possible [`SetFlags`] values
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SetFlags {
     /// Pre-determined.
     Literal(bool),

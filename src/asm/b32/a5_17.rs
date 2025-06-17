@@ -99,7 +99,7 @@ impl Parse for A5_17 {
         match (op2, op3) {
             (0, 0b100) => Ok(Self::Strexb(Strexb::parse(iter)?)),
             (0, 0b101) => Ok(Self::Strexh(Strexh::parse(iter)?)),
-            (1, 0) | (1, 1) => Ok(Self::Tbb(Tbb::parse(iter)?)),
+            (1, 0 | 1) => Ok(Self::Tbb(Tbb::parse(iter)?)),
             (1, 0b100) => Ok(Self::Ldrexb(Ldrexb::parse(iter)?)),
             (1, 0b101) => Ok(Self::Ldrexh(Ldrexh::parse(iter)?)),
             _ => Err(ParseError::Invalid32Bit("A5_17")),
@@ -110,7 +110,7 @@ impl ToOperation for A5_17 {
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(match self {
             Self::Strex(el) => {
-                let imm = (el.imm as u32) << 2;
+                let imm = (u32::from(el.imm)) << 2;
                 operation::Strex::builder()
                     .set_rd(el.rd)
                     .set_rt(el.rt)
@@ -120,7 +120,7 @@ impl ToOperation for A5_17 {
                     .into()
             }
             Self::Ldrex(el) => {
-                let imm = (el.imm as u32) << 2;
+                let imm = (u32::from(el.imm)) << 2;
                 operation::Ldrex::builder()
                     .set_rt(el.rt)
                     .set_rn(el.rn)
@@ -135,7 +135,7 @@ impl ToOperation for A5_17 {
                 .set_rn(el.rn)
                 .set_add(el.u)
                 .set_rt2(el.rt2)
-                .set_imm(Some((el.imm as u32) << 2))
+                .set_imm(Some((u32::from(el.imm)) << 2))
                 .complete()
                 .into(),
             Self::Ldrd(el) => operation::LdrdImmediate::builder()
@@ -145,7 +145,7 @@ impl ToOperation for A5_17 {
                 .set_rn(el.rn)
                 .set_rt2(el.rt2)
                 .set_index(Some(el.p))
-                .set_imm((el.imm as u32) << 2)
+                .set_imm((u32::from(el.imm)) << 2)
                 .complete()
                 .into(),
             Self::Strexb(el) => operation::Strexb::builder()

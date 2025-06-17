@@ -233,7 +233,7 @@ impl Parse for A5_22 {
             0b1011 => return Ok(Self::Sbc(Sbc::parse(iter)?)),
             0b1110 => return Ok(Self::Rsb(Rsb::parse(iter)?)),
             _ => {}
-        };
+        }
         if op == 0b1101 {
             if rd != 0b1111 {
                 return Ok(Self::Sub(Sub::parse(iter)?));
@@ -337,7 +337,7 @@ impl ToOperation for A5_22 {
                 .into(),
             Self::Pkh(el) => {
                 let (tb, _t, imm3, imm2) = (el.tb, el.t, el.imm3, el.imm2);
-                let ty = Shift::try_from((tb as u8) << 1)?;
+                let ty = Shift::try_from((u8::from(tb)) << 1)?;
                 let shift = Some(ImmShift::from((ty, combine!(imm3: imm2, 2, u8))));
 
                 operation::Pkh::builder()
