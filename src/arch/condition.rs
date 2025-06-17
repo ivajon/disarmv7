@@ -1,5 +1,5 @@
 //! Defines the [`Condition`] codes that are defined in the Armv7-m instruction
-//! set..
+//! set.
 
 use crate::ArchError;
 
@@ -50,6 +50,8 @@ pub struct ITCondition {
     /// i.e. to execute instruction `i` the condition
     /// `conditions[i]` must evaluate to true.
     pub conditions: Vec<Condition>,
+    /// The initial bit pattern to be written to ITSTATE.IT<7:0>
+    pub initial_bit_pattern: u8,
 }
 
 impl Condition {
@@ -78,12 +80,15 @@ impl From<(Condition, u8)> for ITCondition {
     fn from(value: (Condition, u8)) -> Self {
         let mask = value.1;
         let cond = value.0;
+        let initial_condition: u8 = (cond.clone()).into();
+        let bit_pattern: u8 = mask | (initial_condition << 4u8);
 
         let condition_code: u8 = cond.clone().into();
         let condition = condition_code & 0b1;
         if mask == 0b1000 {
             return Self {
                 conditions: vec![cond],
+                initial_bit_pattern: bit_pattern,
             };
         }
         let x = {
@@ -96,6 +101,7 @@ impl From<(Condition, u8)> for ITCondition {
         if mask & 0b111 == 0b100 {
             return Self {
                 conditions: vec![cond, x],
+                initial_bit_pattern: bit_pattern,
             };
         }
 
@@ -110,6 +116,7 @@ impl From<(Condition, u8)> for ITCondition {
         if mask & 0b11 == 0b10 {
             return Self {
                 conditions: vec![cond, x, y],
+                initial_bit_pattern: bit_pattern,
             };
         }
 
@@ -122,6 +129,7 @@ impl From<(Condition, u8)> for ITCondition {
         };
         Self {
             conditions: vec![cond, x, y, z],
+            initial_bit_pattern: bit_pattern,
         }
     }
 }

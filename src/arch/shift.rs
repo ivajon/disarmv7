@@ -35,7 +35,7 @@ impl TryFrom<u8> for Shift {
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(Self::Lsl),
-            1 => Ok(Self::Asr),
+            1 => Ok(Self::Lsr),
             2 => Ok(Self::Asr),
             3 => Ok(Self::Ror),
             _ => Err(ArchError::InvalidField(format!(

@@ -6,7 +6,7 @@ use builder_derive::{Builder, Consumer};
 use crate::arch::{
     condition::{Condition, ITCondition},
     coproc::CoProcessor,
-    register::{Register, RegisterList},
+    register::{F32Register, F64Register, IEEE754RoundingMode, Register, RegisterList},
     shift::ImmShift,
     wrapper_types::*,
     SetFlags,
@@ -24,11 +24,17 @@ macro_rules! operation{
             $name:ident $(
                 // Optional field
                 $(
-                    { $field_name:ident : $field_type:ty }
+                    {
+                         $(#[doc = $field_comment:expr])*
+                        $field_name:ident : $field_type:ty
+                    }
                 )?
                 // Required field
                 $(
-                    < $field_name_must_exist:ident : $field_type_must_exist:ty >
+                    <
+                        $(#[doc = $mand_field_comment:expr])*
+                        $field_name_must_exist:ident : $field_type_must_exist:ty
+                    >
                 )?
                 // Denotes an empty set this is simply here to allow instructions with no
                 // arguments
@@ -44,9 +50,15 @@ macro_rules! operation{
             pub struct $name {
                 $(
                     $(
+                        $(
+                            #[doc = $field_comment]
+                        )*
                         pub $field_name : Option<$field_type>
                     )?
                     $(
+                        $(
+                            #[doc = $mand_field_comment]
+                        )*
                         pub $field_name_must_exist : $field_type_must_exist
                     )?
 
@@ -67,6 +79,16 @@ macro_rules! operation{
                 )*
                 $name($name)
             ),*
+        }
+        impl  Operation {
+            /// Returns the name of the given operation.
+            pub const fn name(&self) -> &'static str {
+                match self {
+                    $(
+                        Self::$name(_) => stringify!($name),
+                    )*
+                }
+            }
         }
     };
 }
@@ -145,7 +167,7 @@ operation!(
 
     Isb {option: Imm4}
 
-    It <conds: ITCondition>/* , <mask: Imm4> */
+    It <conds: ITCondition>, <bit_pattern: u8>
 
     // ==================================== L ====================================
 
@@ -464,9 +486,119 @@ operation!(
 
 
     // ==================================== V ====================================
-    //
-    // I will be omitting all of the floating point instructions for now.
-    // TODO! Add in floats
+    VselF32 {cond:Condition}, <sd:F32Register>, <sn:F32Register>, <sm:F32Register>
+    VselF64 {cond:Condition}, <dd:F64Register>, <dn:F64Register>, <dm:F64Register>
+
+    VmlF32<add:bool>, <sd:F32Register>, <sn:F32Register>, <sm:F32Register>
+    VmlF64<add:bool>, <dd:F64Register>, <dn:F64Register>, <dm:F64Register>
+
+    VnmlF32<add:bool>, <sd:F32Register>, <sn:F32Register>, <sm:F32Register>
+    VnmlF64<add:bool>, <dd:F64Register>, <dn:F64Register>, <dm:F64Register>
+
+    VnmulF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VnmulF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VmulF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VmulF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VfmxF32 <sd:F32Register>, <sn:F32Register>, <sm:F32Register>, <negate:bool>
+    VfmxF64 <dd:F64Register>, <dn:F64Register>, <dm:F64Register>, <negate:bool>
+
+    VaddF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VaddF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VsubF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VsubF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VdivF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VdivF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VmaxF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VmaxF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VminF32 {sd:F32Register}, <sn:F32Register>, <sm:F32Register>
+    VminF64 {dd:F64Register}, <dn:F64Register>, <dm:F64Register>
+
+    VmovImmediateF32 <sd:F32Register>, <imm:u32>
+    VmovImmediateF64 <dd:F64Register>, <imm:u64>
+
+    VmovRegisterF32 <sd:F32Register>, <sm:F32Register>
+    VmovRegisterF64 <dd:F64Register>, <dm:F64Register>
+
+    VabsF32 <sd:F32Register>, <sm:F32Register>
+    VabsF64 <dd:F64Register>, <dm:F64Register>
+
+    VnegF32 <sd:F32Register>, <sm:F32Register>
+    VnegF64 <dd:F64Register>, <dm:F64Register>
+
+    VsqrtF32 <sd:F32Register>, <sm:F32Register>
+    VsqrtF64 <dd:F64Register>, <dm:F64Register>
+
+    VcvtF32<top:bool>, <convert_from_half:bool>,  <sd:F32Register>, <sm: F32Register>
+    VcvtF64<top:bool>, <convert_from_half:bool>,  <dd:F32OrF64>, <dm: F32OrF64>
+
+
+    VcmpF32{e:bool},  <sd:F32Register>, <sm: F32Register>
+    VcmpF64{e:bool},  <dd:F64Register>, <dm: F64Register>
+    VcmpZeroF32{e:bool},  <sd:F32Register>
+    VcmpZeroF64{e:bool},  <dd:F64Register>
+
+    VrintF32{
+        /// True => Round toward zero,
+        /// False => Use FPSCR rounding.
+        r:bool
+    },  <sd:F32Register>, <sm: F32Register>
+    VrintF64{
+        /// True => Round toward zero,
+        /// False => Use FPSCR rounding.
+        r:bool
+    },  <dd:F64Register>, <dm: F64Register>
+
+    VcvtF64F32 <dd:F64Register>, <sm: F32Register>
+    VcvtF32F64 <sd:F32Register>, <dm: F64Register>
+
+    Vcvt{r:bool}, <dest:ConversionArgument>, <sm: ConversionArgument>, {
+        /// If this is specified it
+        /// means that the result is a fixed point value.
+        fbits:u32
+    }
+
+    VrintCustomRoundingF32<r:IEEE754RoundingMode>, <sd:F32Register>, <sm: F32Register>
+    VrintCustomRoundingF64<r:IEEE754RoundingMode>, <dd:F64Register>, <dm: F64Register>
+
+    VcvtCustomRoundingIntF32<r:IEEE754RoundingMode>, <sd:IntType>, <sm: F32Register>
+    VcvtCustomRoundingIntF64<r:IEEE754RoundingMode>, <sd:IntType>, <dm: F64Register>
+
+
+    VStmF32<add:bool>, <wback:bool>, <imm32:u32>, <rn:Register>, <registers:Vec<F32Register>>
+    VStmF64<add:bool>, <wback:bool>, <imm32:u32>, <rn:Register>, <registers:Vec<F64Register>>
+
+    VStrF32<add:bool>, <imm32:u32>, <rn:Register>, <sd:F32Register>
+    VStrF64<add:bool>, <imm32:u32>, <rn:Register>, <dd:F64Register>
+
+    VPushF32 <imm32:u32>, <registers:Vec<F32Register>>
+    VPushF64 <imm32:u32>, <registers:Vec<F64Register>>
+
+    VLdrF32<add:bool>, <imm32:u32>, <rn:Register>, <sd:F32Register>
+    VLdrF64<add:bool>, <imm32:u32>, <rn:Register>, <dd:F64Register>
+
+    VPopF32 <imm32:u32>, <registers:Vec<F32Register>>
+    VPopF64 <imm32:u32>, <registers:Vec<F64Register>>
+
+    VLdmF32<add:bool>, <wback:bool>, <imm32:u32>, <rn:Register>, <registers:Vec<F32Register>>
+    VLdmF64<add:bool>, <wback:bool>, <imm32:u32>, <rn:Register>, <registers:Vec<F64Register>>
+
+    VmoveF32 <to_core:bool>, <sn:F32Register>, <rt:Register>
+    VmoveHalfWord <to_core:bool>, <
+    /// NOTE: Assumes that the sn is a halfword of dn
+    sn:F32Register>, <rt:Register>
+
+    Vmsr <rt:Register>
+    Vmrs <rt:RegisterOrAPSR>
+
+    VmoveDoubleF32 <to_core:bool>, <rt:Register>, <rt2:Register>, <sm:F32Register>, <sm1:F32Register>
+
+    VmoveF64 <to_core:bool>, <rt:Register>, <rt2:Register>, <dm:F64Register>
 
 
     // ==================================== W ====================================
@@ -478,3 +610,35 @@ operation!(
 
     Yield <>
 );
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum ConversionArgument {
+    F32(F32Register),
+    F64(F64Register),
+    U32(F32Register),
+    I32(F32Register),
+    I16(F32Register),
+    U16(F32Register),
+    U32F64(F64Register),
+    I32F64(F64Register),
+    I16F64(F64Register),
+    U16F64(F64Register),
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum IntType {
+    U32(F32Register),
+    I32(F32Register),
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum F32OrF64 {
+    F32(F32Register),
+    F64(F64Register),
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum RegisterOrAPSR {
+    APSR,
+    Register(Register),
+}

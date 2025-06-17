@@ -112,7 +112,7 @@ pub mod operation;
 
 use std::fmt::Debug;
 
-use arch::ArchError;
+use arch::{ArchError, Mask};
 use asm::b16::B16;
 use operation::Operation;
 
@@ -163,6 +163,8 @@ pub trait Stream: Consume<u32> + Consume<u16> + Consume<u8> + Debug {
             None => Err(ParseError::IncompleteProgram),
         }
     }
+    /// Forks the stream.
+    fn fork(&mut self) -> Self;
 }
 /// Denotes that the type can be constructed from a [`Stream`].
 pub trait Parse {
@@ -180,7 +182,7 @@ pub trait Parse {
 
 pub(crate) trait ToOperation {
     /// Translates the encoded value in to a [`Operation`] instruction
-    fn encoding_specific_operations(self) -> crate::operation::Operation;
+    fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError>;
 }
 
 #[derive(Debug)]
@@ -208,6 +210,14 @@ pub enum ParseError {
 
     /// Thrown when a target register does not exist.
     InvalidRegister(u8),
+
+    /// Thrown when a target register does not exist.
+    InvalidFloatingPointRegister(u8),
+
+    /// Thrown when a target
+    /// ([IEEE754RoundingMode](crate::arch::register::IEEE754RoundingMode)])
+    /// rounding mode does not exist.
+    InvalidRoundingMode(u8),
 
     /// Thrown when an unpredictable instruction is used
     Unpredictable,
@@ -266,8 +276,9 @@ impl Parse for operation::Operation {
             return Err(ParseError::IncompleteProgram);
         }
         let halfword = halfword.unwrap();
+        let masked = halfword.mask::<11, 15>();
 
-        Ok(match halfword >> 11 {
+        Ok(match masked {
             0b11101..=0b11111 => B32::parse(iter)?,
             _ => B16::parse(iter)?,
         })

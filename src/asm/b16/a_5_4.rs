@@ -1,16 +1,7 @@
 use paste::paste;
 
 use super::Mask;
-use crate::{
-    arch::Register,
-    combine,
-    instruction,
-    operation,
-    Parse,
-    ParseError,
-    Stream,
-    ToOperation,
-};
+use crate::{arch::Register, instruction, operation, Parse, ParseError, Stream, ToOperation};
 instruction!(
     size u16;  A5_4 contains
     Add : {
@@ -83,11 +74,11 @@ impl Parse for A5_4 {
 }
 
 impl ToOperation for A5_4 {
-    fn encoding_specific_operations(self) -> crate::operation::Operation {
-        match self {
+    fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
+        Ok(match self {
             Self::Add(el) => {
                 let (dn, rdn) = (el.dn, el.rdn);
-                let reg: Register = combine!(dn:rdn,3,u8).try_into().unwrap();
+                let reg: Register = ((dn << 3) | rdn).try_into()?;
 
                 operation::AddRegister::builder()
                     .set_s(Some(false.into()))
@@ -100,7 +91,7 @@ impl ToOperation for A5_4 {
             }
             Self::Cmp(el) => {
                 let (n, rn) = (el.n, el.rn);
-                let reg: Register = combine!(n:rn,3,u8).try_into().unwrap();
+                let reg: Register = ((n << 3) | rn).try_into()?;
                 operation::CmpRegister::builder()
                     .set_rn(reg)
                     .set_rm(el.rm)
@@ -110,7 +101,7 @@ impl ToOperation for A5_4 {
             }
             Self::Mov(el) => {
                 let (d, rd) = (el.d, el.rd);
-                let reg: Register = combine!(d:rd,3,u8).try_into().unwrap();
+                let reg: Register = ((d << 3) | rd).try_into()?;
                 operation::MovRegister::builder()
                     .set_s(Some(false))
                     .set_rd(reg)
@@ -120,7 +111,7 @@ impl ToOperation for A5_4 {
             }
             Self::Bx(el) => operation::Bx::builder().set_rm(el.rm).complete().into(),
             Self::Blx(el) => operation::Blx::builder().set_rm(el.rm).complete().into(),
-        }
+        })
     }
 }
 #[cfg(test)]

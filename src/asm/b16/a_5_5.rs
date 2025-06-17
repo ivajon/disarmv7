@@ -53,9 +53,9 @@ instruction!(
         // rt as u8 : Register : 8->10 try_into
     },
     LdrI : {
-        rt as u8 : Register : 0 -> 2 try_into,
-        rn as u8 : Register : 3 -> 5 try_into,
-        imm5 as u8 : u8         : 6 -> 10
+        rt as u8    : Register  : 0 -> 2 try_into,
+        rn as u8    : Register  : 3 -> 5 try_into,
+        imm5 as u8  : u8        : 6 -> 10
     },
     StrbI : {
         rt as u8 : Register : 0->2 try_into,
@@ -79,13 +79,13 @@ instruction!(
     },
     // Relative
     StrRI : {
-        imm8 as u8 : u8     : 0->7 ,
-        rt as u8 : Register : 8->10 try_into
+        imm8 as u8  : u8                : 0->7 ,
+        rt as u8    : Register          : 8->10 try_into
     },
     // Relative
     LdrRI : {
-        imm8 as u8 : u8     : 0->7 ,
-        rt as u8 : Register : 8->10 try_into
+        imm8 as u8  : u8                : 0->7 ,
+        rt as u8    : Register          : 8->10 try_into
     }
 );
 
@@ -152,8 +152,8 @@ impl Parse for A5_5 {
 }
 
 impl ToOperation for A5_5 {
-    fn encoding_specific_operations(self) -> crate::operation::Operation {
-        match self {
+    fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
+        Ok(match self {
             Self::Str(el) => operation::StrRegister::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
@@ -271,7 +271,7 @@ impl ToOperation for A5_5 {
                 .set_index(Some(true))
                 .set_add(true)
                 .set_rt(el.rt)
-                .set_rn(13_u8.try_into().unwrap())
+                .set_rn(13u8.try_into().unwrap())
                 .set_imm((el.imm8 as u32) << 2)
                 .complete()
                 .into(),
@@ -284,7 +284,7 @@ impl ToOperation for A5_5 {
                 .set_imm((el.imm8 as u32) << 2)
                 .complete()
                 .into(),
-        }
+        })
     }
 }
 #[cfg(test)]

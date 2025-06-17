@@ -40,7 +40,7 @@
 //! assert!(value == target);
 //! ```
 
-use std::{fmt::Debug, usize};
+use std::fmt::Debug;
 
 use crate::{Consume, Peek, Stream};
 
@@ -180,7 +180,14 @@ impl<T: Iterator<Item = u8> + Debug> Consume<u8> for PeekableBuffer<u8, T> {
     }
 }
 
-impl<T: Iterator<Item = u8> + Debug> Stream for PeekableBuffer<u8, T> {}
+impl<T: Iterator<Item = u8> + Debug + Clone> Stream for PeekableBuffer<u8, T> {
+    fn fork(&mut self) -> Self {
+        Self {
+            iter: self.iter.clone(),
+            peeked_elements: self.peeked_elements.clone(),
+        }
+    }
+}
 
 impl<I: Sized, T: Iterator<Item = I>> From<T> for PeekableBuffer<I, T> {
     fn from(iter: T) -> Self {
