@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use macros::{compare, extract_fields};
 use paste::paste;
 
@@ -151,7 +149,7 @@ macro_rules! b {
         let mut accumulator:u32 = 0;
         $(
         let (size, value) = e!($($e)*);
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -178,7 +176,7 @@ macro_rules! b {
         $(
         let (size, value) = e!($($e)*);
         total_size += size as usize;
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -239,19 +237,21 @@ macro_rules! r64 {
 
 macro_rules! regs64 {
     ($vd:ident,$offset:ident,$imm8:ident) => {
-        forcibly_collect((b!(($offset<0>),($vd as u32; 4))..($imm8 as u32 / 2)).map(|idx| F64Register::try_from(idx)))?
+        forcibly_collect((b!(($offset<0>),(u32::from($vd); 4))..(u32::from($imm8) / 2)).map(|idx| F64Register::try_from(idx)))?
     };
 }
 macro_rules! regs32{
     ($vd:ident,$offset:ident,$imm8:ident) => {
         {
-        let val = b!(($vd as u32; 4),($offset<0>))..($imm8 as u32);
+        let val = b!((u32::from($vd) ; 4),($offset<0>))..(u32::from($imm8) );
         forcibly_collect((val).map(|idx| F32Register::try_from(idx)))?
         }
     };
 }
 
 impl ToOperation for A6_7 {
+    // CLIPPY NOTE: This needs to be this long.
+    #[allow(clippy::too_many_lines)]
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(match self {
             Self::VStm(VStm {
@@ -266,7 +266,7 @@ impl ToOperation for A6_7 {
             }) if t1 => Operation::VStmF64(operation::VStmF64 {
                 add: u,
                 wback: w,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 registers: regs64!(vd, d, imm8),
             }),
@@ -283,7 +283,7 @@ impl ToOperation for A6_7 {
             }) => Operation::VStmF32(operation::VStmF32 {
                 add: u,
                 wback: w,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 registers: regs32!(vd, d, imm8),
             }),
@@ -296,7 +296,7 @@ impl ToOperation for A6_7 {
                 u,
             }) if t1 => Operation::VStrF64(operation::VStrF64 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 dd: r64!(vd, d),
             }),
@@ -310,7 +310,7 @@ impl ToOperation for A6_7 {
                 u,
             }) => Operation::VStrF32(operation::VStrF32 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 sd: r32!(vd, d),
             }),
@@ -326,7 +326,7 @@ impl ToOperation for A6_7 {
                 p: _,
             }) if t1 => Operation::VLdmF64(operation::VLdmF64 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 wback: w,
                 registers: regs64!(vd, d, imm8),
@@ -343,16 +343,19 @@ impl ToOperation for A6_7 {
                 p: _,
             }) => Operation::VLdmF32(operation::VLdmF32 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 wback: w,
                 registers: regs32!(vd, d, imm8),
             }),
             Self::VPop(VPop { imm8, t1, vd, d }) if t1 => {
-                let regs =
-                    forcibly_collect((0..=(d >> 2)).map(|idx| vd + idx).map(|el| el.try_into()))?;
+                let regs = forcibly_collect(
+                    (0..=(d >> 2))
+                        .map(|idx| vd + idx)
+                        .map(std::convert::TryInto::try_into),
+                )?;
                 Operation::VPopF64(operation::VPopF64 {
-                    imm32: (imm8 as u32) << 2,
+                    imm32: u32::from(imm8) << 2,
                     registers: regs,
                 })
             }
@@ -364,14 +367,21 @@ impl ToOperation for A6_7 {
                 vd,
                 d,
             }) => Operation::VPopF32(operation::VPopF32 {
-                imm32: (imm8 as u32) << 2,
-                registers: forcibly_collect((0..d).map(|idx| vd + idx).map(|el| el.try_into()))?,
+                imm32: u32::from(imm8) << 2,
+                registers: forcibly_collect(
+                    (0..d)
+                        .map(|idx| vd + idx)
+                        .map(std::convert::TryInto::try_into),
+                )?,
             }),
             Self::VPush(VPush { imm8, t1, vd, d }) if t1 => {
-                let regs =
-                    forcibly_collect((0..=(d >> 2)).map(|idx| vd + idx).map(|el| el.try_into()))?;
+                let regs = forcibly_collect(
+                    (0..=(d >> 2))
+                        .map(|idx| vd + idx)
+                        .map(std::convert::TryInto::try_into),
+                )?;
                 Operation::VPushF64(operation::VPushF64 {
-                    imm32: (imm8 as u32) << 2,
+                    imm32: u32::from(imm8) << 2,
                     registers: regs,
                 })
             }
@@ -382,10 +392,14 @@ impl ToOperation for A6_7 {
                 vd,
                 d,
             }) => {
-                let regs = forcibly_collect((0..d).map(|idx| vd + idx).map(|el| el.try_into()))?;
+                let regs = forcibly_collect(
+                    (0..d)
+                        .map(|idx| vd + idx)
+                        .map(std::convert::TryInto::try_into),
+                )?;
 
                 Operation::VPushF32(operation::VPushF32 {
-                    imm32: (imm8 as u32) << 2,
+                    imm32: u32::from(imm8) << 2,
                     registers: regs,
                 })
             }
@@ -398,7 +412,7 @@ impl ToOperation for A6_7 {
                 u,
             }) if t1 => Operation::VLdrF64(operation::VLdrF64 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 dd: r64!(vd, d),
             }),
@@ -412,7 +426,7 @@ impl ToOperation for A6_7 {
                 u,
             }) => Operation::VLdrF32(operation::VLdrF32 {
                 add: u,
-                imm32: (imm8 as u32) << 2,
+                imm32: u32::from(imm8) << 2,
                 rn,
                 sd: r32!(vd, d),
             }),
@@ -525,7 +539,7 @@ mod test {
                     == Operation::VStmF64(crate::operation::VStmF64 {
                         add,
                         wback,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         rn,
                         registers
                     })
@@ -600,7 +614,7 @@ mod test {
                     == Operation::VStmF32(crate::operation::VStmF32 {
                         add,
                         wback,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         rn,
                         registers
                     })
@@ -663,7 +677,7 @@ mod test {
                     == Operation::VLdmF64(crate::operation::VLdmF64 {
                         add,
                         wback,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         rn,
                         registers
                     })
@@ -738,7 +752,7 @@ mod test {
                     == Operation::VLdmF32(crate::operation::VLdmF32 {
                         add,
                         wback,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         rn,
                         registers
                     })
@@ -761,7 +775,7 @@ mod test {
                 [enc(imm8, u8::from(register), add, true, rn)]
                     == Operation::VStrF64(crate::operation::VStrF64 {
                         add,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         dd: register,
                         rn,
                     })
@@ -784,7 +798,7 @@ mod test {
                 [enc(imm8, u8::from(register), add, false, rn)]
                     == Operation::VStrF32(crate::operation::VStrF32 {
                         add,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         sd: register,
                         rn,
                     })
@@ -807,7 +821,7 @@ mod test {
                 [enc(imm8, u8::from(register), add, true, rn)]
                     == Operation::VLdrF64(crate::operation::VLdrF64 {
                         add,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         dd: register,
                         rn,
                     })
@@ -830,7 +844,7 @@ mod test {
                 [enc(imm8, u8::from(register), add, false, rn)]
                     == Operation::VLdrF32(crate::operation::VLdrF32 {
                         add,
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         sd: register,
                         rn,
                     })
@@ -866,7 +880,7 @@ mod test {
             check_eq!(
                 [enc(imm8, register, true)]
                     == Operation::VPushF64(crate::operation::VPushF64 {
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         registers
                     })
             );
@@ -907,7 +921,7 @@ mod test {
             check_eq!(
                 [enc(imm8, register, false)]
                     == Operation::VPushF32(crate::operation::VPushF32 {
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         registers
                     })
             );
@@ -942,7 +956,7 @@ mod test {
             check_eq!(
                 [enc(imm8, register, true)]
                     == Operation::VPopF64(crate::operation::VPopF64 {
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         registers
                     })
             );
@@ -983,7 +997,7 @@ mod test {
             check_eq!(
                 [enc(imm8, register, false)]
                     == Operation::VPopF32(crate::operation::VPopF32 {
-                        imm32: (imm8 as u32) << 2,
+                        imm32: u32::from(imm8) << 2,
                         registers
                     })
             );

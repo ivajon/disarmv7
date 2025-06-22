@@ -2,7 +2,7 @@ use paste::paste;
 
 use super::{a5_25::A5_25, a5_26::A5_26, a5_27::A5_27};
 use crate::{
-    arch::wrapper_types::*,
+    arch::wrapper_types::Imm2,
     asm::{LocalTryInto, Mask},
     instruction,
     prelude::*,
@@ -111,6 +111,7 @@ instruction!(
 impl Parse for A5_24 {
     type Target = Self;
 
+    #[allow(clippy::cognitive_complexity)]
     fn parse<T: Stream>(iter: &mut T) -> Result<Self::Target, ParseError>
     where
         Self: Sized,
@@ -125,7 +126,7 @@ impl Parse for A5_24 {
             (0b010, 0) => return Ok(Self::Asr(Asr::parse(iter)?)),
             (0b011, 0) => return Ok(Self::Ror(Ror::parse(iter)?)),
             _ => {}
-        };
+        }
         if op2 >> 3 == 1 {
             match (op1, rn == 0b1111) {
                 (0b0000, false) => return Ok(Self::Sxtah(Sxtah::parse(iter)?)),

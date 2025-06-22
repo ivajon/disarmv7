@@ -94,58 +94,58 @@ impl Parse for A5_6 {
             Some(u) => Ok(u.mask::<5, 11>()),
             None => Err(ParseError::IncompleteProgram),
         }?;
-        if opcode == 0b0110011 {
+        if opcode == 0b011_0011 {
             p!(Cps from iter);
         }
         if opcode >> 2 == 0 {
             p!(AddImmediateToSP from iter);
         }
-        if opcode & 0b1111100 == 0b100 {
+        if opcode & 0b111_1100 == 0b100 {
             p!(SubImmediateFromSp from iter);
         }
-        if opcode & 0b1111000 == 0b1000 {
+        if opcode & 0b111_1000 == 0b1000 {
             p!(Cbz from iter);
         }
-        if opcode & 0b1111110 == 0b10000 {
+        if opcode & 0b111_1110 == 0b1_0000 {
             p!(Sxth from iter);
         }
-        if opcode & 0b1111110 == 0b10010 {
+        if opcode & 0b111_1110 == 0b1_0010 {
             p!(Sxtb from iter);
         }
-        if opcode & 0b1111110 == 0b10100 {
+        if opcode & 0b111_1110 == 0b1_0100 {
             p!(Uxth from iter);
         }
-        if opcode & 0b1111110 == 0b10110 {
+        if opcode & 0b111_1110 == 0b1_0110 {
             p!(Uxtb from iter);
         }
-        if opcode & 0b1111000 == 0b0011000 {
+        if opcode & 0b111_1000 == 0b001_1000 {
             p!(Cbz from iter);
         }
-        if opcode & 0b1110000 == 0b0100000 {
+        if opcode & 0b111_0000 == 0b010_0000 {
             p!(Push from iter);
         }
-        if opcode & 0b1111000 == 0b1001000 {
+        if opcode & 0b111_1000 == 0b100_1000 {
             p!(Cbnz from iter);
         }
-        if opcode & 0b1111110 == 0b1010000 {
+        if opcode & 0b111_1110 == 0b101_0000 {
             p!(Rev from iter);
         }
-        if opcode & 0b1111110 == 0b1010010 {
+        if opcode & 0b111_1110 == 0b101_0010 {
             p!(Rev16 from iter);
         }
-        if opcode & 0b1111110 == 0b1010110 {
+        if opcode & 0b111_1110 == 0b101_0110 {
             p!(Revsh from iter);
         }
-        if opcode & 0b1111000 == 0b1011000 {
+        if opcode & 0b111_1000 == 0b101_1000 {
             p!(Cbnz from iter);
         }
-        if opcode & 0b1110000 == 0b1100000 {
+        if opcode & 0b111_0000 == 0b110_0000 {
             p!(Pop from iter);
         }
-        if opcode & 0b1111000 == 0b1110000 {
+        if opcode & 0b111_1000 == 0b111_0000 {
             p!(Bkpt from iter);
         }
-        if opcode & 0b1111000 == 0b1111000 {
+        if opcode & 0b111_1000 == 0b111_1000 {
             return Ok(Self::SubtableA5_7(A5_7::parse(iter)?));
         }
 
@@ -166,19 +166,19 @@ impl ToOperation for A5_6 {
             Self::AddImmediateToSP(el) => operation::AddSPImmediate::builder()
                 .set_s(Some(false))
                 .set_rd(None)
-                .set_imm((el.imm7 as u32) << 2)
+                .set_imm((u32::from(el.imm7)) << 2)
                 .complete()
                 .into(),
             Self::SubImmediateFromSp(el) => operation::SubSpMinusImmediate::builder()
                 .set_s(Some(false))
                 .set_rd(None)
-                .set_imm((el.imm7 as u32) << 2)
+                .set_imm((u32::from(el.imm7)) << 2)
                 .complete()
                 .into(),
             Self::Cbz(el) => operation::Cbz::builder()
                 .set_non(Some(el.op == 1))
                 .set_rn(el.rn)
-                .set_imm(((el.i as u32) << 6) | ((el.imm5 as u32) << 1))
+                .set_imm(((u32::from(el.i)) << 6) | ((u32::from(el.imm5)) << 1))
                 .complete()
                 .into(),
             Self::Sxth(el) => operation::Sxth::builder()
@@ -233,7 +233,7 @@ impl ToOperation for A5_6 {
             Self::Cbnz(el) => operation::Cbz::builder()
                 .set_non(Some(el.op == 1))
                 .set_rn(el.rn)
-                .set_imm((el.imm5 as u32) << 1)
+                .set_imm((u32::from(el.imm5)) << 1)
                 .complete()
                 .into(),
             Self::Pop(el) => {
@@ -246,7 +246,7 @@ impl ToOperation for A5_6 {
                     .into()
             }
             Self::Bkpt(el) => operation::Bkpt::builder()
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::SubtableA5_7(el) => el.encoding_specific_operations()?,

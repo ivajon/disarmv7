@@ -4,7 +4,6 @@
 //! This provides the ability to create a new instruction
 //! in a short and readable way.
 use crate::{arch::ArchError, ParseError};
-
 impl From<ArchError> for ParseError {
     fn from(value: ArchError) -> Self {
         Self::ArchError(value)
@@ -18,7 +17,7 @@ impl From<ArchError> for ParseError {
 ///
 /// ```text
 /// instruction!{
-///     size 32; SomeTableIdent contains
+///     size 32; `SomeTableIdent` contains
 ///         SomeInstructionIdent : {
 ///              some_field_name as intermediateType (u8) : SomeFinalType : {start_bit} -> {end_bit} optional_conversion_method (try_into),
 ///         },
@@ -26,10 +25,10 @@ impl From<ArchError> for ParseError {
 ///     }
 /// };
 /// ```
-/// This macro invocation provides an enum SomeTableIdent containing the
+/// This macro invocation provides an enum `SomeTableIdent` containing the
 /// variants (SomeInstructionIdent,PossiblyMoreInstructions) which in turn are
 /// structs containing the fields defined in the { } block. All of the fields in
-/// SomeTableIdent implement [`Parse`](crate::Parse).
+/// `SomeTableIdent` implement [`Parse`](crate::Parse).
 macro_rules! instruction {
     (size $size:ty;
      $(
@@ -86,7 +85,9 @@ macro_rules! instruction {
         $size:ty; $word:ident $(as $representation:ty)?; $start:literal -> $end:literal $($expr:ident)?
     ) => {
             {
+
                 #[allow(dead_code)]
+                #[inline(always)]
                 fn map<T:Into<ParseError>>(el:T) -> ParseError{
                     el.into()
                 }
@@ -204,6 +205,7 @@ macro_rules! instruction {
         ),*
     ) => {
         paste!{
+            #[allow(clippy::derive_partial_eq_without_eq)]
             #[derive(Debug,PartialEq)]
             pub enum $table{
                 $(
@@ -266,6 +268,7 @@ macro_rules! instruction {
                         #[doc = "- " [<$field_id>] " of type " [<$type>] " from bit " [<$start>] " to bit " [<$end>] "\n"]
                     )*
                     $(#[$($attrss)*])*
+                    #[allow(clippy::derive_partial_eq_without_eq)]
                     #[derive(Debug,PartialEq)]
                     pub struct $id {
                         $(

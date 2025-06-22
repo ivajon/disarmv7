@@ -425,12 +425,13 @@ instruction!(
 impl Parse for A6_5 {
     type Target = Self;
 
+    #[allow(clippy::verbose_bit_mask, clippy::too_many_lines)]
     fn parse<T: Stream>(iter: &mut T) -> Result<Self::Target, ParseError>
     where
         Self: Sized,
     {
         let word: u32 = iter.peek::<1>().ok_or(ParseError::IncompleteProgram)?;
-        let (t, opc1, opc2, intermediate, sz, opc3, intermediate2, _opc4) =
+        let (t, opc1, opc2, intermediate, sz, opc3, intermediate2, opc4) =
             extract_fields!(word => xxx|1|xxxx|2222|3333|4444|xxx|5|66|7|x|8888);
 
         // TODO: Remove this.
@@ -444,7 +445,7 @@ impl Parse for A6_5 {
                 sz,
                 opc3,
                 intermediate2,
-                _opc4
+                opc4
             );
             assert!(size == word);
         }
@@ -651,7 +652,7 @@ macro_rules! b {
         let mut accumulator:u32 = 0;
         $(
         let (size, value) = e!($($e)*);
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -678,7 +679,7 @@ macro_rules! b {
         $(
         let (size, value) = e!($($e)*);
         total_size += size as usize;
-        let value = value as u32;
+        let value = u32::from(value);
         accumulator <<= size;
         accumulator |= value & ((1<<size) - 1);
         )*
@@ -719,64 +720,62 @@ macro_rules! e {
 }
 
 fn vfpexpandimm32(imm8: u8) -> u32 {
+    #[inline(always)]
+    // Assumes that imm is a single bit.
+    fn replicate(imm: u8, mut n: u32) -> u32 {
+        let mut ret: u32 = 0;
+        while n != 0 {
+            n -= 1;
+            ret <<= 1;
+            ret |= u32::from(imm);
+        }
+        ret
+    }
     const N: u32 = 32;
     assert!((32..=64).contains(&N));
     let e = if N == 32 { 8 } else { 11 };
 
     let f = N - e - 1;
     let sign = imm8.mask::<7, 7>();
-    // Assumes that imm is a single bit.
-    const fn replicate(imm: u8, mut n: u32) -> u32 {
-        let mut ret: u32 = 0;
-        while n != 0 {
-            n -= 1;
-            ret <<= 1;
-            ret |= imm as u32;
-        }
-        ret
-    }
-    let exp = (!imm8).mask::<6, 6>() as u32;
+    let exp = u32::from((!imm8).mask::<6, 6>());
     let exp = (exp << (e - 3)) | (replicate((imm8 >> 6) & 0b1, e - 3));
-    let exp = (exp << 2) | imm8.mask::<4, 5>() as u32;
+    let exp = (exp << 2) | u32::from(imm8.mask::<4, 5>());
     let exp_size = 2 + e - 3 + 1;
 
-    let frac = (imm8.mask::<0, 3>() as u32) << (f - 4);
+    let frac = (u32::from(imm8.mask::<0, 3>())) << (f - 4);
     let frac_size = 4 + f - 4;
-    let ret = (sign as u32) << (exp_size + frac_size);
+    let ret = (u32::from(sign)) << (exp_size + frac_size);
     let ret = ret | (exp << frac_size);
-    let ret = ret | frac;
-
-    ret
+    ret | frac
 }
 
 fn vfpexpandimm64(imm8: u8) -> u64 {
+    #[inline(always)]
+    // Assumes that imm is a single bit.
+    fn replicate(imm: u8, mut n: u64) -> u64 {
+        let mut ret: u64 = 0;
+        while n != 0 {
+            n -= 1;
+            ret <<= 1;
+            ret |= u64::from(imm);
+        }
+        ret
+    }
     const N: u64 = 64;
     let e = if N == 32 { 8 } else { 11 };
 
     let f = N - e - 1;
     let sign = imm8 >> 7;
-    // Assumes that imm is a single bit.
-    const fn replicate(imm: u8, mut n: u64) -> u64 {
-        let mut ret: u64 = 0;
-        while n != 0 {
-            n -= 1;
-            ret <<= 1;
-            ret |= imm as u64;
-        }
-        ret
-    }
-    let exp = (!imm8).mask::<6, 6>() as u64;
+    let exp = u64::from((!imm8).mask::<6, 6>());
     let exp = (exp << (e - 3)) | (replicate((imm8 >> 6) & 0b1, e - 3));
-    let exp = (exp << 2) | imm8.mask::<4, 5>() as u64;
+    let exp = (exp << 2) | u64::from(imm8.mask::<4, 5>());
     let exp_size = 2 + e - 3 + 1;
 
-    let frac = (imm8.mask::<0, 3>() as u64) << (f - 4);
+    let frac = (u64::from(imm8.mask::<0, 3>())) << (f - 4);
     let frac_size = 4 + f - 4;
-    let ret = (sign as u64) << (exp_size + frac_size);
+    let ret = (u64::from(sign)) << (exp_size + frac_size);
     let ret = ret | (exp << frac_size);
-    let ret = ret | frac;
-
-    ret
+    ret | frac
 }
 
 macro_rules! r32 {
@@ -810,6 +809,7 @@ macro_rules! int{
 }
 
 impl ToOperation for A6_5 {
+    #[allow(clippy::too_many_lines, clippy::match_same_arms)]
     fn encoding_specific_operations(self) -> Result<crate::operation::Operation, ParseError> {
         Ok(match self {
             Self::VSelF32(VSelF32 {
@@ -1474,8 +1474,8 @@ impl ToOperation for A6_5 {
                     (true, true, false, false) => conv!(U32, r32!(sd, d)),
                 };
                 let size = if sx { 32 } else { 16 };
-                let imm4: u32 = imm4 as u32;
-                let i: u32 = i as u32;
+                let imm4: u32 = u32::from(imm4);
+                let i: u32 = u32::from(i);
                 let comb: u32 = b!((imm4;4),(i<0>));
                 if comb > size {
                     return Err(ParseError::Unpredictable);
@@ -1563,7 +1563,7 @@ mod test {
 
     macro_rules! r32 {
         ($idx:ident) => {{
-            let s = u8::from(F32Register::$idx) as u32;
+            let s = u32::from(u8::from(F32Register::$idx));
             let bit = s & 0b1;
             let s = s >> 1;
             (F32Register::$idx, s, bit)
@@ -1572,7 +1572,7 @@ mod test {
     #[allow(unused_macros)]
     macro_rules! r64 {
         ($idx:ident) => {{
-            let s = u8::from(F64Register::$idx) as u32;
+            let s = u32::from(u8::from(F64Register::$idx));
             let bit = s & 0b10000;
             let s = s & 0b1111;
             (F64Register::$idx, s, bit)
@@ -1596,7 +1596,7 @@ mod test {
         let (rm, sm, m) = r32!(S0);
         let (rd, sd, d) = r32!(S1);
         let (rn, sn, n) = r32!(S2);
-        let cc: u32 = u8::from(Condition::Eq) as u32;
+        let cc: u32 = u32::from(u8::from(Condition::Eq));
         let cc = cc >> 3;
         let sz = 0u32;
         let size = combine!(
@@ -1627,7 +1627,7 @@ mod test {
         let (rm, sm, m) = r64!(D0);
         let (rd, sd, d) = r64!(D1);
         let (rn, sn, n) = r64!(D2);
-        let cc: u32 = u8::from(Condition::Ne) as u32;
+        let cc: u32 = u32::from(u8::from(Condition::Ne));
         let cc = cc >> 3;
         let sz = 1u32;
         let size = combine!(

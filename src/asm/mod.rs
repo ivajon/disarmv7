@@ -5,7 +5,7 @@ use crate::ParseError;
 pub mod b16;
 pub mod b32;
 
-pub(crate) trait LocalTryInto<T> {
+pub trait LocalTryInto<T> {
     fn local_try_into(self) -> Result<T, ParseError>;
 }
 /// Helper to mask fields from a type.
@@ -35,9 +35,10 @@ impl LocalTryInto<bool> for u32 {
     }
 }
 impl Mask for u8 {
+    #[allow(clippy::cast_possible_truncation)]
     fn mask<const START: usize, const END: usize>(&self) -> Self {
         let intermediate = self >> START;
-        let mask = ((1 << (END - START + 1) as u8) as u8) - 1u8;
+        let mask = (1 << (END - START + 1) as Self) - 1;
 
         let ret = intermediate & mask;
         assert!(ret <= mask);
@@ -45,9 +46,10 @@ impl Mask for u8 {
     }
 }
 impl Mask for u16 {
-    fn mask<const START: usize, const END: usize>(&self) -> u16 {
+    #[allow(clippy::cast_possible_truncation)]
+    fn mask<const START: usize, const END: usize>(&self) -> Self {
         let intermediate = self >> START;
-        let mask = ((1 << (END - START + 1) as u16) as u16) - 1u16;
+        let mask = (1 << (END - START + 1) as Self) - 1;
 
         let ret = intermediate & mask;
         assert!(ret <= mask);
@@ -56,9 +58,10 @@ impl Mask for u16 {
 }
 
 impl Mask for u32 {
-    fn mask<const START: usize, const END: usize>(&self) -> u32 {
+    #[allow(clippy::cast_possible_truncation)]
+    fn mask<const START: usize, const END: usize>(&self) -> Self {
         let intermediate = self >> START;
-        let mask = ((1 << (END - START + 1) as u32) as u32) - 1u32;
+        let mask = (1 << (END - START + 1) as Self) - 1;
 
         let ret = intermediate & mask;
         assert!(ret <= mask);

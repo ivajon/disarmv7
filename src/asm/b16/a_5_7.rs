@@ -22,6 +22,7 @@ instruction!(
 impl Parse for A5_7 {
     type Target = Self;
 
+    #[allow(clippy::similar_names)]
     fn parse<T: crate::Stream>(iter: &mut T) -> Result<Self::Target, ParseError>
     where
         Self: Sized,

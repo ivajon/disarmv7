@@ -1,7 +1,7 @@
 use paste::paste;
 
 use crate::{
-    arch::wrapper_types::*,
+    arch::wrapper_types::{Imm12, Imm2},
     asm::{LocalTryInto, Mask},
     instruction,
     prelude::*,
@@ -64,7 +64,7 @@ impl Parse for A5_18 {
             return Ok(Self::LdrImmediateT3(LdrImmediateT3::parse(iter)?));
         }
         if op1 == 0 {
-            if op2 & 0b100100 == 0b100100 || op2 >> 2 == 0b1100 {
+            if op2 & 0b10_0100 == 0b10_0100 || op2 >> 2 == 0b1100 {
                 return Ok(Self::LdrImmediateT4(LdrImmediateT4::parse(iter)?));
             }
             if op2 >> 2 == 0b1110 {
@@ -96,13 +96,13 @@ impl ToOperation for A5_18 {
                 .set_index(el.p)
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(el.imm8 as u32)
+                .set_imm(u32::from(el.imm8))
                 .complete()
                 .into(),
             Self::Ldrt(el) => operation::Ldrt::builder()
                 .set_rt(el.rt)
                 .set_rn(el.rn)
-                .set_imm(Some(el.imm8 as u32))
+                .set_imm(Some(u32::from(el.imm8)))
                 .complete()
                 .into(),
             Self::LdrRegister(el) => {

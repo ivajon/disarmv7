@@ -36,10 +36,10 @@ impl Parse for NoTable {
         let word: u32 = iter.peek::<1>().ok_or(ParseError::IncompleteProgram)?;
 
         if compare!(word == 1110 | 11101 | x | 10 | xxxx | xxxx | 101 | 0 | x | x | x | 0 | xxxx) {
-            return Ok(NoTable::VFMX32(VFMX32::parse(iter)?));
+            return Ok(Self::VFMX32(VFMX32::parse(iter)?));
         }
         if compare!(word == 1110 | 11101 | x | 10 | xxxx | xxxx | 101 | 1 | x | x | x | 0 | xxxx) {
-            return Ok(NoTable::VFMX64(VFMX64::parse(iter)?));
+            return Ok(Self::VFMX64(VFMX64::parse(iter)?));
         }
         Err(ParseError::Invalid32Bit("Not part of NoTable"))
     }

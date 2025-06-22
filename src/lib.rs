@@ -99,10 +99,23 @@
 //! assert_eq!(instr, target)
 //! ```
 
-#![deny(clippy::all)]
+#![deny(clippy::all, clippy::pedantic, clippy::nursery)]
 #![deny(warnings)]
 #![deny(missing_docs)]
 #![deny(rustdoc::all)]
+#![allow(
+// NOTE: Personal taste
+    clippy::option_if_let_else,
+    clippy::single_match,
+    clippy::single_match_else,
+    clippy::inline_always,
+    clippy::match_bool,
+// NOTE: This crate does a lot of `as` to get a smaller region of the value.
+    clippy::cast_possible_truncation,
+    // Decoding tables takes a few lines.
+    clippy::too_many_lines,
+
+)]
 
 pub mod arch;
 mod asm;
@@ -149,11 +162,16 @@ pub trait Consume<T: Sized>: Sized + Peek<T> {
 /// Denotes that the type can be treated as a stream to be [`parsed`](Parse)
 /// from.
 pub trait Stream: Consume<u32> + Consume<u16> + Consume<u8> + Debug {
+    #[must_use]
     /// consumes a single byte from the stream.
     fn step(&mut self) -> Option<u8> {
         Some(self.consume::<1>()?[0])
     }
     /// Gets the next element of type `T` in the buffer.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the stream contains no more data.
     fn next<T>(&mut self) -> Result<T, ParseError>
     where
         Self: Peek<T>,
@@ -163,6 +181,7 @@ pub trait Stream: Consume<u32> + Consume<u16> + Consume<u8> + Debug {
             None => Err(ParseError::IncompleteProgram),
         }
     }
+    #[must_use]
     /// Forks the stream.
     fn fork(&mut self) -> Self;
 }
@@ -175,6 +194,11 @@ pub trait Parse {
     /// If the parsing is successful it [`consumes`](Consume) a number
     /// of elements from the [`Stream`]. If it does not successfully
     /// parse an element no elements are consumed from the stream.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the underlying parsing functionality
+    /// detects an invalid encoding.
     fn parse<T: Stream>(iter: &mut T) -> Result<Self::Target, ParseError>
     where
         Self: Sized;
@@ -215,7 +239,7 @@ pub enum ParseError {
     InvalidFloatingPointRegister(u8),
 
     /// Thrown when a target
-    /// ([IEEE754RoundingMode](crate::arch::register::IEEE754RoundingMode)])
+    /// ([`IEEE754RoundingMode`](crate::arch::register::IEEE754RoundingMode)])
     /// rounding mode does not exist.
     InvalidRoundingMode(u8),
 
@@ -244,7 +268,7 @@ pub enum ParseError {
 impl Parse for ASM {
     type Target = Self;
 
-    fn parse<T: Stream>(iter: &mut T) -> Result<ASM, ParseError>
+    fn parse<T: Stream>(iter: &mut T) -> Result<Self, ParseError>
     where
         Self: Sized,
     {
@@ -258,16 +282,16 @@ impl Parse for ASM {
                         stmts.into_iter().map(|el| el.1).collect(),
                     ))
                 }
-            };
+            }
         }
         Ok(stmts.into())
     }
 }
 
 impl Parse for operation::Operation {
-    type Target = (usize, operation::Operation);
+    type Target = (usize, Self);
 
-    fn parse<T: Stream>(iter: &mut T) -> Result<(usize, operation::Operation), ParseError>
+    fn parse<T: Stream>(iter: &mut T) -> Result<(usize, Self), ParseError>
     where
         Self: Sized,
     {
@@ -286,13 +310,13 @@ impl Parse for operation::Operation {
 }
 
 impl From<Vec<(usize, Operation)>> for ASM {
-    fn from(value: Vec<(usize, operation::Operation)>) -> Self {
+    fn from(value: Vec<(usize, Operation)>) -> Self {
         Self { statements: value }
     }
 }
 
 impl From<ASM> for Vec<(usize, Operation)> {
-    fn from(value: ASM) -> Vec<(usize, Operation)> {
+    fn from(value: ASM) -> Self {
         value.statements
     }
 }

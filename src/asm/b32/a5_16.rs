@@ -1,3 +1,5 @@
+#![allow(clippy::cast_lossless)]
+
 use paste::paste;
 
 use crate::{
@@ -8,7 +10,6 @@ use crate::{
     ParseError,
     ToOperation,
 };
-
 instruction!(
     size u32; A5_16 contains
     Stm : {
